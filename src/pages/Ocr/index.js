@@ -1,0 +1,289 @@
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  Alert,
+  Image,
+  Platform,
+  Pressable,
+} from "react-native";
+import { Button } from "react-native-paper";
+import * as ImageManipulator from "expo-image-manipulator";
+import * as ImagePicker from "expo-image-picker";
+import Spinner from "../../components/Spinner";
+import { MaterialIcons } from "@expo/vector-icons";
+import { StatusBar } from "expo-status-bar";
+import api_ocr from "../../services/api";
+import Header from "../../components/Header";
+import styles from "./styles";
+import colors from "../../utils/colors";
+
+export default function Ocr({ navigation }) {
+  const [image, setImage] = useState();
+  const [isBusy, setIsBusy] = useState(false);
+
+  // PEDE A PERMISSÃO DE USO DA CÂMERA ASSIM QUE O APP INICIALIZA
+  useEffect(() => {
+    (async () => {
+      if (Platform.OS !== "web") {
+        const { status } = await ImagePicker.getCameraPermissionsAsync();
+        if (status !== "granted") {
+          alert(
+            "Desculpe, você precisa permitir o acesso a camera para esta ação!"
+          );
+        }
+      }
+    })();
+  }, []);
+
+  // PEGA IMAGEM, ENVIA PARA A API_OCR E ANALISA SE A IMAGEM CONDIZ OU NÃO CONDIZ COM O RECIBO DE ENTREGA
+  const pickImage = async () => {
+    let result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      base64: true,
+    });
+
+    if (result.uri) {
+      setImage(result.uri);
+      const dataCompressed = await ImageManipulator.manipulateAsync(
+        result.uri,
+        [{ resize: { width: 600 } }],
+        { compress: 0.4, base64: true }
+      );
+
+      if (dataCompressed.base64) {
+        let url = "data:image/png;base64," + dataCompressed.base64;
+
+        var formData = new FormData();
+        formData.append("base64Image", url);
+        formData.append("language", "por");
+
+        try {
+          setIsBusy(true);
+          let response = await api_ocr.post("/parse/image", formData);
+          if (response.data.ErrorMessage) {
+            setIsBusy(false);
+            //console.log("OCR",response.data.ErrorMessage[0]);
+            alert("Erro no retorno da api");
+          } else {
+            let stringResultado = response.data.ParsedResults[0].ParsedText;
+            stringResultado = stringResultado
+              .replace(/,/g, "")
+              .replace(/\./g, "");
+            let buscaPelaNota = stringResultado.indexOf("2988589") != -1;
+            if (buscaPelaNota) {
+              console.log("a nota enviada esta correta");
+              Alert.alert(
+                "Sucesso",
+                "a nota enviada esta correta",
+                [{ text: "Proseguir" }],
+                {
+                  cancelable: false,
+                }
+              );
+            } else {
+              console.log("a nota enviada não condiz com a entrega");
+              Alert.alert(
+                "Falhou",
+                "a nota enviada não condiz com a entrega",
+                [{ text: "Repetir" }],
+                {
+                  cancelable: true,
+                }
+              );
+            }
+          }
+        } catch (error) {
+          console.log(error.message);
+          alert("Erro ->", error);
+        } finally {
+          setIsBusy(false);
+        }
+      }
+    }
+  };
+
+  return (
+    <>
+      <StatusBar hidden={false} backgroundColor={"#000000CC"} style="light" />
+      {isBusy && (
+        <View
+          style={{
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              marginTop: "60%",
+              marginBottom: "15%",
+            }}
+          >
+            Aguardando validação da imagem...
+          </Text>
+          <Spinner color={"blue"} />
+        </View>
+      )}
+      {!isBusy && (
+        <View style={styles.contents}>
+          <View style={styles.header}>
+            <Header />
+          </View>
+          <View style={styles.body}>
+            <View style={styles.trip}>
+              <View style={styles.align_trip}>
+                <Text style={styles.trip_text}>Viagem em andamento</Text>
+                <Text style={styles.trip_text}>Order Nº 1947029</Text>
+              </View>
+              <View style={styles.trip_status}>
+                <View style={styles.status}></View>
+                <Text style={{ color: "white" }}>No prazo</Text>
+              </View>
+            </View>
+            <View style={styles.container}>
+              <View style={styles.mission}>
+                <View style={styles.align_mission}>
+                  <Text style={styles.mission_text}>
+                    Ponto 1
+                  </Text>
+                  <Text style={styles.mission_text}>
+                    Quantidade de notas: 01
+                  </Text>
+                </View>
+                <View style={styles.align_mission}>
+                  <Text style={styles.mission_text}>
+                    Rua Voluntários da Pátria, 560
+                  </Text>
+                  <Text style={styles.mission_text}>
+                    Sala 203, Bloco 2
+                  </Text>
+                </View>
+                <View style={[styles.align_mission, {justifyContent: "flex-start"}]}>
+                  <MaterialIcons
+                    name="location-pin"
+                    size={25}
+                    color={colors.icon}
+                  />
+                  <Text style={[styles.trip_text, {color: "#3E3E3E"}]}>Fernando Ferreira de Solsa</Text>
+                </View>
+                <Text style={styles.mission_text}>Entrega pessoalmente para Fernando ou Evaldo</Text>
+              </View>
+              <View style={styles.option}>
+                <Pressable
+                  onPress={pickImage}
+                  android_ripple={{
+                    radius: 45,
+                    borderless: true,
+                    color: "#bdbfff",
+                  }}
+                >
+                  <View style={styles.align_option}>
+                    <Image
+                      resizeMode="contain"
+                      source={require("../../assets/images/nota_fiscal.png")}
+                    />
+                    <Text
+                      style={{
+                        color: "#515151",
+                        fontSize: 16,
+                        fontWeight: "700",
+                        textAlign: "center",
+                      }}
+                    >
+                      Foto da nota fiscal
+                    </Text>
+                    <View style={styles.check_true}>
+                      <Image
+                        resizeMode="contain"
+                        source={require("../../assets/images/check.png")}
+                      />
+                    </View>
+                  </View>
+                </Pressable>
+              </View>
+              <View style={styles.option}>
+                <Pressable
+                  onPress={() => navigation.navigate("Signature")}
+                  android_ripple={{
+                    radius: 45,
+                    borderless: true,
+                    color: "#bdbfff",
+                  }}
+                >
+                  <View style={styles.align_option}>
+                    <Image
+                      resizeMode="contain"
+                      source={require("../../assets/images/assinatura.png")}
+                    />
+                    <Text
+                      style={{
+                        color: "#515151",
+                        fontSize: 16,
+                        fontWeight: "700",
+                        textAlign: "center",
+                      }}
+                    >
+                      Coletar assinatura
+                    </Text>
+                    <View style={styles.check_true}>
+                      <Image
+                        resizeMode="contain"
+                        source={require("../../assets/images/check.png")}
+                      />
+                    </View>
+                  </View>
+                </Pressable>
+              </View>
+              <View style={styles.option}>
+                <Pressable
+                  onPress={pickImage}
+                  android_ripple={{
+                    radius: 45,
+                    borderless: true,
+                    color: "#bdbfff",
+                  }}
+                >
+                  <View style={styles.align_option}>
+                    <Image
+                      resizeMode="contain"
+                      source={require("../../assets/images/fachada.png")}
+                    />
+                    <Text
+                      style={{
+                        color: "#515151",
+                        fontSize: 16,
+                        fontWeight: "700",
+                        textAlign: "center",
+                      }}
+                    >
+                      Foto da fachada
+                    </Text>
+                    <View style={styles.check_false}>
+                      <Image
+                        resizeMode="contain"
+                        source={require("../../assets/images/check.png")}
+                      />
+                    </View>
+                  </View>
+                </Pressable>
+              </View>
+              <Button style={[styles.button, {backgroundColor: "#000000B2"}]} labelStyle={{color: "white"}} mode="outlined" onPress={() => console.log('Pressed')}>
+                FINALIZAR ENTREGA / COLETA
+              </Button>
+              <Button style={styles.button} mode="outlined" labelStyle={{color: "#000000B2"}} onPress={() => console.log('Pressed')}>
+                REPORTAR PROBLEMA
+              </Button>
+              {/* {image && (
+                <Image
+                  source={{ uri: image }}
+                  resizeMode="contain"
+                  style={{ marginTop: 20, width: 350, height: 100 }}
+                />
+              )} */}
+            </View>
+          </View>
+        </View>
+      )}
+    </>
+  );
+}

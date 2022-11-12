@@ -1,0 +1,91 @@
+{
+  "expo": {
+    "name": "Trouw+Mobile",
+    "slug": "livemobile-dev",
+    "version": "1.0.2",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Este aplicativo usa a câmera para capturar imagens das notas fiscais de entrega e coleta"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Este aplicativo acessa suas fotos de notas fiscais de entrega e coleta"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#ffffff"
+        }
+      ]
+    ],
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#000000"
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/6e7c9fff-e884-428f-8426-ec79fe0515b6"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "bundleIdentifier": "com.trouw.mobile",
+      "supportsTablet": true,
+      "buildNumber": "1.4.18",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Este aplicativo usa a câmera para capturar imagens das notas fiscais de entrega e coleta.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Este aplicativo precisa de acesso para obter a localização atual e informar a api os pontos de coleta e entrega de mecadoria.",
+        "NSLocationAlwaysUsageDescription": "Este aplicativo precisa de acesso para obter a localização atual e informar a api os pontos de coleta e entrega de mecadoria.",
+        "NSLocationWhenInUseUsageDescription": "Este aplicativo precisa de acesso para obter a localização atual e informar a api os pontos de coleta e entrega de mecadoria.",
+        "NSPhotoLibraryUsageDescription": "Este aplicativo precisa de acesso a biblioteca de fotos e vídeos, para selecionar fotos e vídeos que foram tirados para enviar a api.",
+        "NSPhotoLibraryAddUsageDescription": "Este aplicativo precisa de acesso a biblioteca de fotos e vídeos, para salvar fotos e vídeos que foram tirados para enviar a api.",
+        "UIBackgroundModes": [
+          "location"
+        ]
+      },
+      "config": {
+        "googleMapsApiKey": "AIzaSyCNcKvd7ez5gZp5FuWgplYmaBTJag72c8I"
+      }
+    },
+    "android": {
+      "package": "com.trouw.mobile",
+      "versionCode": 4,
+      "permissions": [
+        "CAMERA",
+        "CAMERA_ROLL",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "MEDIA_LIBRARY",
+        "RECORD_AUDIO",
+        "ACCESS_BACKGROUND_LOCATION",
+        "LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCNcKvd7ez5gZp5FuWgplYmaBTJag72c8I"
+        }
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    }
+  }
+}
