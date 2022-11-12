@@ -1,0 +1,20 @@
+// CORES USADAS NO SISTEMA
+export default {
+    primary0: '#0293D6',
+    primary1: '#00557C',
+    primary2: '#004757',
+    secondary0: '#FCE290',
+    secondary1: '#F8C525',
+    secondary2: '#856240',
+    success: '#5CE23E',
+    error: '#E23E5C',
+    warning: '#E2C43E',
+    primaryDisable: 'rgba(0, 71, 87, 0.5)',
+    secondaryDisable: 'rgba(248, 197, 37, 0.5)',
+    backgroundHeader: '#FFFFFF',
+    backgroundFooter: '#EFEEED',
+    icon: '#3E3E3E',
+    black: '#000000',
+    text: '#2E2E2E',
+    button: '#275D85',
+  };
