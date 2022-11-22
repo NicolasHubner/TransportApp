@@ -310,6 +310,8 @@ const styles = StyleSheet.create({
     zIndex: 1000
   },
   internetStatusNotificationText: {
-    textAlign: "center"
+    textAlign: "center",
+    color: '#fff',
+    fontWeight: 'bold',
   }
 });
