@@ -3795,10 +3795,10 @@ expo-updates-interface@~0.7.0:
   resolved "https://registry.npmjs.org/expo-updates-interface/-/expo-updates-interface-0.7.0.tgz"
   integrity sha512-saThnbrYDSjKxfMFFguAvh5o5KGabvAOHItkJRwq2L3c0T/3q26Q0kM83880h/+TTtAVsl1+Vhny9d+ImD3yvQ==
 
-expo-updates@~0.14.5:
-  version "0.14.6"
-  resolved "https://registry.npmjs.org/expo-updates/-/expo-updates-0.14.6.tgz"
-  integrity sha512-JmE3nsbL8cUAV2slhIqqNIG+jEYCJJvPzSYcUBd15s0sg0xxRbasNaEfnSIrYtZMjhl/YNwMgQzUkU6C2NtXyg==
+expo-updates@~0.14.7:
+  version "0.14.7"
+  resolved "https://registry.yarnpkg.com/expo-updates/-/expo-updates-0.14.7.tgz#772dd2255197f84935be2c5a63876cc20e386471"
+  integrity sha512-xzRvsv45TfIYJ4arTMiorAci4LvUQvpBJx0llJcdCFLWGcoj59roi48ldtDTwkgQAGjDP/Oyysd3zTyvpwxjYg==
   dependencies:
     "@expo/code-signing-certificates" "0.0.2"
     "@expo/config" "~7.0.1"
@@ -6865,7 +6865,7 @@ reactotron-core-client@2.8.10:
 
 reactotron-react-native@^5.0.3:
   version "5.0.3"
-  resolved "https://registry.npmjs.org/reactotron-react-native/-/reactotron-react-native-5.0.3.tgz"
+  resolved "https://registry.yarnpkg.com/reactotron-react-native/-/reactotron-react-native-5.0.3.tgz#5ab884f33e6ffa0437b8b0f4d93cabb5acb7da24"
   integrity sha512-uUQ074uw3I9X/pc7FBgrrwrFzfwXDKlxzuekNjzspZz9Y0qVLX1cAm9GTC0ZPsZRvY5wDPY/Il7XfV1YeVSDxA==
   dependencies:
     mitt "1.1.3"
