@@ -189,6 +189,7 @@ function LocationController() {
       let travelId = await StorageController.buscarPorChave(TRAVEL_ID);
       let userId = await StorageController.buscarPorChave(USER_ID);
 
+      console.log(arrayLocations);
       let dataEnv = false;
       if (arrayLocations) {
         arrayLocations = JSON.parse(JSON.parse(arrayLocations));
