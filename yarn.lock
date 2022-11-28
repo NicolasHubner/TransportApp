@@ -3882,10 +3882,10 @@ expo-battery@~7.0.0:
   resolved "https://registry.yarnpkg.com/expo-battery/-/expo-battery-7.0.0.tgz#f5a8b0f8361272c46c85b40b129993b0e47b7ade"
   integrity sha512-y1ehvHNKTnK29GmrgIVl8H1nVLNuF6slVSNRhESZHaCU7v5Cl62d825OAbfJGKAfoWwhtjfnsO2bPiQJGF1WPA==
 
-expo-camera@~13.0.0:
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/expo-camera/-/expo-camera-13.0.0.tgz#eedde5b35f5948617068f09412d6d3dd26fe71c4"
-  integrity sha512-3OVETNVtvlQojQSfghto9nn/Y/90DA0xOyEeJqNz9N8CX8klnclyXbBSeXtDN6aFz1lQH8D/fKePbFKNxoPsyg==
+expo-camera@~13.1.0:
+  version "13.1.0"
+  resolved "https://registry.yarnpkg.com/expo-camera/-/expo-camera-13.1.0.tgz#e706a8efc78d1891d848ff729730d9d75468d36d"
+  integrity sha512-YD1Gd5nyhk3ekXgVTsTLrhd0Nlug51NI7hjBKq2BOP+X5YyrcZLVarZAXXdc5vgeW73VBYIne1rpX9Q0qJdlrw==
   dependencies:
     "@koale/useworker" "^4.0.2"
     invariant "^2.2.4"
