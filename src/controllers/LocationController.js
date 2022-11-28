@@ -12,8 +12,9 @@ import * as Battery from 'expo-battery';
 import StorageController from "./StorageController";
 import { format } from "date-fns";
 import { api } from "../services/api";
+import {getRealmContext} from "../contexts/RealmContext";
+import { LocationDao } from "../daos/LocationDao";
 
-// SALVA NO CACHE SE A LOCALIZAÇÃO FOI SALVA OU NÃO
 function LocationController() {
   const saveLocationsTask = async (lat, long, speed) => {
     try {
@@ -35,63 +36,9 @@ function LocationController() {
     }
   };
 
-  // const saveLocations = async () => {
-  //   try {
-  //     const gpsAutorizado = await verificaAutorizacaoLocalizacao();
-  //     const gpsAtivo = await verificaAtivacaoLocalizacao();
-  //     if (!gpsAutorizado) {
-  //       await StorageController.salvarPorChave(GPS_STATUS, "NAO AUTORIZADO");
-  //       return { code: "NAO AUTORIZADO", success: false };
-  //     }
-  //     if (!gpsAtivo) {
-  //       await StorageController.salvarPorChave(GPS_STATUS, "DESABILITADO");
-  //       return { code: "DESABILITADO", success: false };
-  //     }
-
-  //     const location = await buscaLocal();
-  //     if (location) {
-  //       const lastLocation = await saveLastLocation(location.coords);
-  //       const arrayLocation = await saveArrayLocations(location.coords);
-  //       // console.log(lastLocation);
-  //       // console.log('-----');
-  //       // console.log(arrayLocation);
-  //       if (lastLocation && arrayLocation) {
-  //         await StorageController.salvarPorChave(GPS_STATUS, "SUCESSO");
-  //         return { code: "SUCESSO", success: true };
-  //       } else {
-  //         return { code: "FALHOU", success: false };
-  //       }
-  //     } else {
-  //       return { code: "SEM LOCALIZACAO", success: false };
-  //     }
-  //   } catch (error) {
-  //     return { code: error.message, success: false };
-  //   }
-  // };
-
-  // const saveLastLocation = async (location) => {
-  //   try {
-  //     const { latitude, longitude } = location;
-  //     const atualLocation = {
-  //       latitude,
-  //       longitude,
-  //       latitudeDelta: 0.02,
-  //       longitudeDelta: 0.02,
-  //     };
-  //     await StorageController.salvarPorChave(
-  //       LAST_LOCATION,
-  //       JSON.stringify(atualLocation)
-  //     );
-  //     return true;
-  //   } catch (error) {
-  //     return false;
-  //   }
-  // };
-
   // SALVA A ULTIMA LOCALIZAÇÃO DO USUÁRIO (APENAS LATITUDE E LONGITUDE)
   const saveLastLocation = async (lat, long) => {
     try {
-      // const { latitude, longitude } = location;
       const atualLocation = {
         lat,
         long,
@@ -108,71 +55,18 @@ function LocationController() {
     }
   };
 
-  // const saveArrayLocations = async (location) => {
-  //   try {
-  //     let arrayLocations = await StorageController.buscarPorChave(
-  //       ARRAY_LOCATION
-  //     );
-  //     if (arrayLocations) {
-  //       arrayLocations = JSON.parse(JSON.parse(arrayLocations));
-  //     } else {
-  //       arrayLocations = [];
-  //     }
-  //     const { latitude, longitude } = location;
-  //     const date = format(new Date(), "yyyy-MM-dd HH:mm:ss");
-  //     const atualLocation = {
-  //       lat: latitude,
-  //       lng: longitude,
-  //       date: date,
-  //     };
-  //     arrayLocations.push(atualLocation);
-
-  //     await StorageController.salvarPorChave(
-  //       ARRAY_LOCATION,
-  //       JSON.stringify(arrayLocations)
-  //     );
-  //     return true;
-  //   } catch (error) {
-  //     console.log(error.message);
-  //     return false;
-  //   }
-  // };
-
   // SALVA A LOCALIZAÇÃO MAIS DETALHADA DO USUARIO
   const saveArrayLocations = async (lat, long, speed) => {
     try {
-      let arrayLocations = await StorageController.buscarPorChave(
-        ARRAY_LOCATION
-      );
-      if (arrayLocations) {
-        arrayLocations = JSON.parse(JSON.parse(arrayLocations));
-      } else {
-        arrayLocations = [];
-      }
-      // const { latitude, longitude } = location;
       const date = format(new Date(), "yyyy-MM-dd HH:mm:ss");
       let battery = await Battery.getBatteryLevelAsync();
       battery = Math.round(battery*100);
 
-      const atualLocation = {
-        lat: lat,
-        lng: long,
-        speed: Math.round(speed),
-        batteryStatus: battery,
-        gpsStatus: 1,
-        networkStatus: "GPRS",
-        appStatus: "first_plane",
-        date: date,
-      };
-      arrayLocations.push(atualLocation);
-
-      await StorageController.salvarPorChave(
-        ARRAY_LOCATION,
-        JSON.stringify(arrayLocations)
-      );
+      await LocationDao.save(lat, long, Math.round(speed), battery, 1, "GPRS", "first_plane", date);
+      
       return true;
     } catch (error) {
-      console.log(error.message);
+      console.log("saveArrayLocations", error.message);
       return false;
     }
   };
@@ -180,18 +74,18 @@ function LocationController() {
   // ENVIA A LOCALIZAÇÃO PARA A API
   const sendLocationsTask = async () => {
     try {
-      // console.log("envia");
-      let arrayLocations = await StorageController.buscarPorChave(
-        ARRAY_LOCATION
-      );
+
+      let arrayLocations = await LocationDao.getTop(5);
+      console.log("getLocations", arrayLocations);
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
       let localId = await StorageController.buscarPorChave(LOCAL_ID);
       let travelId = await StorageController.buscarPorChave(TRAVEL_ID);
       let userId = await StorageController.buscarPorChave(USER_ID);
 
+      
       let dataEnv = false;
       if (arrayLocations) {
-        arrayLocations = JSON.parse(JSON.parse(arrayLocations));
+        
         let dateSend = format(new Date(), "yyyy-MM-dd HH:mm:ss");
 
         dataEnv = {
@@ -212,7 +106,6 @@ function LocationController() {
             dataEnv = { ...dataEnv, travel_local_id: localId };
           }
         }
-        arrayLocations.push();
       }
 
       if (dataEnv && token) {
@@ -220,13 +113,15 @@ function LocationController() {
           headers: { Authorization: `bearer ${token}` },
         });
         if (response) {
-          await StorageController.removePorChave(ARRAY_LOCATION);
+          await LocationDao.deleteList(arrayLocations);
           return { code: "SUCESSO", success: true };
         }
       } else {
         return { code: "FALTA INFO", success: false };
       }
     } catch (e) {
+      console.log("sendLocationsTask", e.message);
+
       if (e.response) {
         return { code: e.response.data, success: false };
       } else {
@@ -367,20 +262,12 @@ function LocationController() {
     }
   };
 
-  // const enviaCoordenadasApi = asunc () => {
-  //   try {
-
-  //   } catch (error) {
-
-  //   }
-  // }
 
   return {
     buscaLocal,
     buscaEndereco,
     buscaEnderecoCompleto,
     calculaDistancia,
-    // saveLocations,
     saveLocationsTask,
     verificaAutorizacaoLocalizacao,
     verificaAutorizacaoBackgroundLocalizacao,
