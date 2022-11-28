@@ -19,6 +19,7 @@ TaskManager.defineTask(LOCATION_TRACKING, async ({ data, error }) => {
     return;
   }
   if (data) {
+    console.log(LOCATION_TRACKING, data);
     const { locations } = data;
     let lat = locations[0].coords.latitude;
     let long = locations[0].coords.longitude;
@@ -84,7 +85,7 @@ function BackgroundTaskController() {
 
     if (!isRegistered) {
       return BackgroundFetch.registerTaskAsync(LOCATION_SENDING, {
-        minimumInterval: 30, // 30 seconds
+        minimumInterval: 180, // 30 seconds
         stopOnTerminate: false, // android only,
         startOnBoot: true, // android only
       });
@@ -97,13 +98,13 @@ function BackgroundTaskController() {
   const startLocationTracking = async () => {
     await Location.startLocationUpdatesAsync(LOCATION_TRACKING, {
       accuracy: Location.Accuracy.BestForNavigation,
-      timeInterval: 10000,
+      timeInterval: 120000,
       foregroundService: {
         notificationTitle: "Trouw",
         notificationBody: "consultando sua localização",
         notificationColor: "#AA1111",
       },
-      deferredUpdatesInterval: 100,
+      deferredUpdatesInterval: 60000,
     });
     const hasStarted = await Location.hasStartedLocationUpdatesAsync(
       LOCATION_TRACKING
