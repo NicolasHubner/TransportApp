@@ -73,8 +73,6 @@ function LocationController() {
   // ENVIA A LOCALIZAÇÃO PARA A API
   const sendLocationsTask = async () => {
     try {
-
-      crashlytics().recordError(new Error("aaaaa"));
       let arrayLocations = await LocationDao.getTop(5);
       console.log("getLocations", arrayLocations);
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
