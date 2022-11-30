@@ -22,6 +22,7 @@ import { Button } from "react-native-paper";
 import { api } from "../../services/api";
 import { format } from "date-fns";
 import styles from "./styles";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function Insuccess({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -47,6 +48,7 @@ export default function Insuccess({ navigation, route }) {
     try {
       signOut();
     } catch (error) {
+      crashlytics().recordError(error);
       Alert.alert("AVISO", error.message, [{ text: "OK" }], {
         cancelable: false,
       });
@@ -82,6 +84,7 @@ export default function Insuccess({ navigation, route }) {
       setData(insuccess);
       setTrip(insuccess[0].travel_id);
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     } finally {
       setIsBusy(false);
@@ -118,6 +121,7 @@ export default function Insuccess({ navigation, route }) {
         hideModalFinishTravel();
       }
     } catch (error) {
+      crashlytics().recordError(error);
       if (error.response) {
         console.log(error.response.data);
       } else {

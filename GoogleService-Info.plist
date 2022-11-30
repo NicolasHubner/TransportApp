@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>216457595812-7bjqse79af72qh17s29g6paqsf71rb0e.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.216457595812-7bjqse79af72qh17s29g6paqsf71rb0e</string>
+	<key>API_KEY</key>
+	<string>AIzaSyBfcUsBKGa1G-EcXYWQHkQnVAZTg3ivLKY</string>
+	<key>GCM_SENDER_ID</key>
+	<string>216457595812</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>dev.com.trouw.mobile</string>
+	<key>PROJECT_ID</key>
+	<string>livemobile-dev</string>
+	<key>STORAGE_BUCKET</key>
+	<string>livemobile-dev.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:216457595812:ios:4e6d2253faae9c3ca0cf31</string>
+</dict>
+</plist>

@@ -14,6 +14,7 @@ import MapView from "react-native-maps";
 import { api } from "../../../services/api";
 import styles from "./styles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function ContainedMap({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -174,6 +175,7 @@ export default function ContainedMap({ navigation, route }) {
         setMarkers(markers);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       // TRATAMENTO DE ERROS
       if (error.response) {
         Alert.alert("Aviso", error.response.data.message, [{ text: "OK" }], {

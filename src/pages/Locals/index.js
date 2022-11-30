@@ -29,6 +29,7 @@ import Footer from "../../components/Footer";
 import { api } from "../../services/api";
 import { format } from "date-fns";
 import styles from "./styles";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function Locals({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -98,6 +99,7 @@ export default function Locals({ navigation, route }) {
       }
       // console.log(travelId.id);
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.response.data);
       if (error.response.status == "404") {
         Alert.alert(
@@ -157,6 +159,7 @@ export default function Locals({ navigation, route }) {
         navigation.navigate("TripDetails", travel);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.response);
       if (error.response) {
         Alert.alert("AVISO", error.response.data.errors[0], [{ text: "OK" }], {
@@ -188,31 +191,6 @@ export default function Locals({ navigation, route }) {
     // travel = [...travel, {rote: "Missions"}];
     navigation.navigate("ContactLocals", data);
   }
-
-  // async function goLocalDetails(id) {
-  //   try {
-  //     const token = await StorageController.buscarPorChave(TOKEN_KEY);
-  //     const status = {
-  //       "status": "EM ANDAMENTO",
-  //       "uuid_group": true
-  //     };
-
-  //     const response = await api.post(`/app/travel/local/${id}/change-status`, status, {headers: { Authorization: `bearer ${token}` }});
-  //     if (response.data) {
-  //       navigation.navigate("LocalDetails", id);
-  //     }
-  //   } catch (error) {
-  //     if (error.response) {
-  //       Alert.alert("AVISO", error.response.data.errors[0], [{ text: "OK" }], {
-  //         cancelable: false,
-  //       });
-  //     } else {
-  //       Alert.alert("AVISO", error.message, [{ text: "OK" }], {
-  //         cancelable: false,
-  //       });
-  //     }
-  //   }
-  // }
 
   // SALVA OS LOCAIS E REDIRECIONA PARA O LOCALDETAILS
   const saveMergedLocal = async (merge, id) => {

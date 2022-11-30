@@ -29,6 +29,7 @@ import yupLocale from "../../validations";
 import styles from "../Login/styles";
 import { api } from "../../services/api";
 import * as Yup from "yup";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 Yup.setLocale(yupLocale);
 const INITIAL_VALUES = { email: [], password: [], api_error: [] };
@@ -66,6 +67,7 @@ export default function Login({ navigation }) {
         setChecked(true);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     } finally {
       setLoading(false);
@@ -90,8 +92,9 @@ export default function Login({ navigation }) {
     try {
       await AsyncStorage.setItem(LOGGED, check ? "true" : "false");
       setChecked(check);
-    } catch (e) {
-      Alert.alert("AVISO", e.message, [{ text: "OK" }], {
+    } catch (error) {
+      crashlytics().recordError(error);
+      Alert.alert("AVISO", error.message, [{ text: "OK" }], {
         cancelable: false,
       });
     }
@@ -169,6 +172,7 @@ export default function Login({ navigation }) {
         setVisible(true);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       const errorMessages = {};
       if (error && error.inner) {
         const errorItems = error.inner.map((i) => {

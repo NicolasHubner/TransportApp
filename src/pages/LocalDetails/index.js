@@ -11,10 +11,7 @@ import { Button } from "react-native-paper";
 // import colors from "../../utils/colors";
 import { api } from "../../services/api";
 import styles from "./styles";
-// import { format } from "date-fns";
-// import {requestPermissions, removeAllTasks, availableTask, getTasks} from "../../backgroundTasks";
-// import ApiController from "../../controllers/ApiController";
-// import { registerBackgroundFetchAsync } from "../../backfroundFetch";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function LocalDetails({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -71,6 +68,7 @@ export default function LocalDetails({ navigation, route }) {
         setData(response.data.data);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       if (error.response && error.response.status == "404") {
         Alert.alert("Aviso", error.response.data.message, [{ text: "OK" }], {
           cancelable: false,
@@ -141,6 +139,7 @@ export default function LocalDetails({ navigation, route }) {
         }
       }
     } catch (error) {
+      crashlytics().recordError(error);
       if (error.response) {
         console.log(error.response.data);
       } else {
@@ -160,6 +159,7 @@ export default function LocalDetails({ navigation, route }) {
       navigation.navigate("SelectNavigation", { localId: local });
       // }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     }
   }

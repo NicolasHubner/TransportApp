@@ -35,6 +35,7 @@ import MapView from "react-native-maps";
 import {api} from "../../../services/api";
 import { format } from "date-fns";
 import styles from "./styles";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function ExpandedMap({ navigation, route }) {
   const [activeDestineChange, setActiveDestineChange] = useState(false);
@@ -139,6 +140,7 @@ export default function ExpandedMap({ navigation, route }) {
       }
     } catch (error) {
 
+      crashlytics().recordError(error);
       // VERIFICAÇÃO E TRATAMENTO DE ERROS
       if (error.response) {
         Alert.alert("Aviso", error.response.data.errors[0], [{ text: "OK" }], {
@@ -236,9 +238,10 @@ export default function ExpandedMap({ navigation, route }) {
           setRefresh(!refresh);
         }
       }
-    } catch (e) {
-      console.log(e.response.data);
-      Alert.alert("Atenção", e.response.data.message, [{ text: "OK" }], {
+    } catch (error) {
+      crashlytics().recordError(error);
+      console.log(error.response.data);
+      Alert.alert("Atenção", error.response.data.message, [{ text: "OK" }], {
         cancelable: false,
       });
     }
@@ -279,6 +282,7 @@ export default function ExpandedMap({ navigation, route }) {
         return atualLocation;
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     }
   }
@@ -291,64 +295,12 @@ export default function ExpandedMap({ navigation, route }) {
     navigation.navigate("Missions", data.id);
   };
 
-  // async function confirmDestine(coordenadas) {
-  //   try {
-  //     const tokenKey = await StorageController.buscarPorChave(TOKEN_KEY);
-  //     const params = await route.params;
-  //     let idLocal = "";
-  //     if (params.local) {
-  //       setLocal(params.local);
-  //       idLocal = params.local;
-  //     } else {
-  //       setLocal(params);
-  //       idLocal = params;
-  //     }
-
-  //     const coords = {
-  //       lat: JSON.stringify(coordenadas.latitude),
-  //       long: JSON.stringify(coordenadas.longitude),
-  //     };
-
-  //     if (tokenKey && idLocal) {
-  //       const response = await api.post(
-  //         `/app/travel/local/${idLocal}/confirm-arrival`,
-  //         coords, {headers: { Authorization: `bearer ${tokenKey}` }}
-  //       );
-  //       if (response) {
-  //         // console.log(response.data);
-  //         if (response.data.success === "true") {
-  //           setNewLocalVisible(true);
-  //         }
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.log(error.response);
-  //     if (error.response) {
-  //       if (error.response.status === 422) {
-  //         setNewLocalVisible(false);
-  //       } else {
-  //         Alert.alert(
-  //           "Aviso",
-  //           error.response.data.errors[0],
-  //           [{ text: "OK" }],
-  //           {
-  //             cancelable: false,
-  //           }
-  //         );
-  //       }
-  //     } else {
-  //       Alert.alert("Aviso", error.message, [{ text: "OK" }], {
-  //         cancelable: false,
-  //       });
-  //     }
-  //   }
-  // }
-
   // NAVEGA PARA A TELA DE NOVO ENDEREÇO
   async function toolTip() {
     try {
       navigation.navigate("NewAddress", local);
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     }
   }

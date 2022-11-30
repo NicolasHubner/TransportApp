@@ -3,6 +3,7 @@ import { Platform } from "react-native";
 import { ARRIVAL_NOTIFICATION } from "../constants/constants";
 import * as Notifications from "expo-notifications";
 import StorageController from "./StorageController";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 // SETA AS CONFIGURAÇÕES DAS NOTIFICAÇÕES
 Notifications.setNotificationHandler({
@@ -32,8 +33,9 @@ function NotificationsController() {
           trigger: null,
         });
       }
-    } catch (e) {
-      console.log(e.message);
+    } catch (error) {
+      crashlytics().recordError(error);
+      console.log(error.message);
     }
   };
 
@@ -48,8 +50,9 @@ function NotificationsController() {
         },
         trigger: null,
       });
-    } catch (e) {
-      console.log(e.message);
+    } catch (error) {
+      crashlytics().recordError(error);
+      console.log(error.message);
     }
   };
 

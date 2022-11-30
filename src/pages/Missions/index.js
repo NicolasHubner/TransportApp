@@ -25,6 +25,7 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { api } from "../../services/api";
 import styles from "./styles";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function Missions({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -94,6 +95,7 @@ export default function Missions({ navigation, route }) {
         setMissions(response.data.data.missions);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
       if (error.response.data) {
         Alert.alert(
@@ -148,6 +150,7 @@ export default function Missions({ navigation, route }) {
         navigation.navigate("Locals", travelId);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       if (error.response) {
         Alert.alert("AVISO", error.response.data.message, [{ text: "OK" }], {
           cancelable: false,

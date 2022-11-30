@@ -15,6 +15,7 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { api } from "../../services/api";
 import styles from "./styles";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function NewAddress({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(false);
@@ -43,6 +44,7 @@ export default function NewAddress({ navigation, route }) {
       const id = await route.params;
       setLocal(id);
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error);
     }
   }
@@ -120,6 +122,7 @@ export default function NewAddress({ navigation, route }) {
         }
       }
     } catch (error) {
+      crashlytics().recordError(error);
       if (error.response) {
         Alert.alert("AVISO", error.response.data.message, [{ text: "OK" }], {
           cancelable: false,
@@ -175,6 +178,7 @@ export default function NewAddress({ navigation, route }) {
         });
       }
     } catch (error) {
+      crashlytics().recordError(error);
       if (error.response.data.message) {
         Alert.alert("AVISO", error.response.data.message, [{ text: "OK" }], {
           cancelable: false,

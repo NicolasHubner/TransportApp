@@ -36,6 +36,7 @@ import MapView from "react-native-maps";
 import {api} from "../../../services/api";
 import { format } from "date-fns";
 import styles from "./styles";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 // COMPONENTE DO MAPA DO LOCAL DE ORIGEM
 export default function ExpandedMap({ navigation, route }) {
@@ -150,6 +151,7 @@ export default function ExpandedMap({ navigation, route }) {
         setData(response.data.data);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       // VERIFICAÇÃO E TRATAMENTO DE ERROS
       if (error.response) {
         Alert.alert("Aviso", error.response.data.errors[0], [{ text: "OK" }], {
@@ -237,8 +239,9 @@ export default function ExpandedMap({ navigation, route }) {
           setRefresh(!refresh);
         }
       }
-    } catch (e) {
-      console.log('deu erro aqui', e.response.data);
+    } catch (error) {
+      crashlytics().recordError(error);
+      console.log('deu erro aqui', error.response.data);
     }
   };
 
@@ -278,6 +281,7 @@ export default function ExpandedMap({ navigation, route }) {
         return atualLocation;
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     }
   }
@@ -294,6 +298,7 @@ export default function ExpandedMap({ navigation, route }) {
     try {
       navigation.navigate("NewAddress", local);
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     }
   }

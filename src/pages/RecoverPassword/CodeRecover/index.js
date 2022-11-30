@@ -21,6 +21,7 @@ import {
 import { api } from "../../../services/api";
 import styles from "./styles";
 import * as Yup from "yup";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 Yup.setLocale(yupLocale);
 const INITIAL_VALUES = { code: [] };
@@ -55,6 +56,7 @@ export default function CodeRecover({ navigation }) {
     try {
       console.log("init EmailRecover");
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(e.message);
     }
   }
@@ -90,6 +92,7 @@ export default function CodeRecover({ navigation }) {
         navigation.navigate("ResetPassword", res.data.data.password_token[0]);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       const errorMessages = {};
       if (error && error.inner) {
         const errorItems = error.inner.map((i) => {

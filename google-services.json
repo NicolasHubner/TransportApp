@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "216457595812",
+    "project_id": "livemobile-dev",
+    "storage_bucket": "livemobile-dev.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:216457595812:android:dd4c2b57f926e069a0cf31",
+        "android_client_info": {
+          "package_name": "dev.com.trouw.mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "216457595812-6dknc772na2h52m2ipp5kp8vvkrvahun.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2i0q_JBFzPlLfRtfaDqspgdfKO4lC1t8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "216457595812-6dknc772na2h52m2ipp5kp8vvkrvahun.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "216457595812-7bjqse79af72qh17s29g6paqsf71rb0e.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "dev.com.trouw.mobile"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

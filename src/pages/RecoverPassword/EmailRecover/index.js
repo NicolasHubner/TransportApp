@@ -15,6 +15,7 @@ import yupLocale from "../../../validations";
 import { api } from "../../../services/api";
 import styles from "./styles";
 import * as Yup from "yup";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 Yup.setLocale(yupLocale);
 const INITIAL_VALUES = { email: [] };
@@ -41,6 +42,7 @@ export default function EmailRecover({ navigation }) {
     try {
       console.log("init EmailRecover");
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(e.message);
     }
   }
@@ -72,6 +74,7 @@ export default function EmailRecover({ navigation }) {
         navigation.navigate("CodeRecover");
       }
     } catch (error) {
+      crashlytics().recordError(error);
       const errorMessages = {};
       if (error && error.inner) {
         const errorItems = error.inner.map((i) => {

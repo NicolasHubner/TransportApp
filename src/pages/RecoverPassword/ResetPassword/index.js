@@ -18,6 +18,7 @@ import { api } from "../../../services/api";
 import fundo from "../../../assets/images/background.png";
 import styles from "./styles";
 import * as Yup from "yup";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 Yup.setLocale(yupLocale);
 const INITIAL_VALUES = { password: [], confirmPassword: [] };
@@ -53,6 +54,7 @@ export default function ResetPassword({ navigation, route }) {
       let params = await route.params;
       setPasswordToken(params);
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(e.message);
     }
   }
@@ -100,6 +102,7 @@ export default function ResetPassword({ navigation, route }) {
         });
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
       const errorMessages = {};
       if (error && error.inner) {

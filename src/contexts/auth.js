@@ -8,8 +8,7 @@ import {
   CONNECTED,
 } from "../constants/constants";
 import { api } from "../services/api";
-import { BottomNavigation } from "react-native-paper";
-// import DatabaseController from "../database/controllers/DatabaseController";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 const AuthContext = createContext({ signed: false, user: {} });
 
@@ -52,6 +51,7 @@ export const AuthProvider = ({ children }) => {
       }
       setUser(user);
     } catch (error) {
+      crashlytics().recordError(error);
       Alert.alert("AVISO", error.message, [{ text: "OK" }], {
         cancelable: false,
       });
@@ -76,6 +76,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error);
       await AsyncStorage.clear();
       setUser(null);

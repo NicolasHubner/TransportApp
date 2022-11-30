@@ -47,6 +47,7 @@ import {
 } from "../../constants/constants";
 import { format } from "date-fns";
 import styles from "./styles";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function DeliveryProcess({ navigation, route }) {
   const [address, setAddress] = useState("");
@@ -215,6 +216,7 @@ export default function DeliveryProcess({ navigation, route }) {
         setArrayMotivos(motivos);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       if (error.response) {
         console.log(error.response.data);
         // Alert.alert("Aviso", error.response.data.message, [{ text: "OK" }], {
@@ -267,6 +269,7 @@ export default function DeliveryProcess({ navigation, route }) {
     try {
       signOut();
     } catch (error) {
+      crashlytics().recordError(error);
       Alert.alert("AVISO", error.message, [{ text: "OK" }], {
         cancelable: false,
       });
@@ -299,6 +302,7 @@ export default function DeliveryProcess({ navigation, route }) {
         }
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     }
   };
@@ -365,6 +369,7 @@ export default function DeliveryProcess({ navigation, route }) {
         showModalOcrInsuccess();
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log("DeliveredProcess.pickImageReceipt",error.message);
     } finally {
       init();
@@ -405,6 +410,7 @@ export default function DeliveryProcess({ navigation, route }) {
         }
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log("DeliveryProcess.pickImagePhoto",error.message);
     } finally {
       init();
@@ -483,6 +489,7 @@ export default function DeliveryProcess({ navigation, route }) {
         );
       }
     } catch (error) {
+      crashlytics().recordError(error);
       if (error.response) {
         console.log(error.response.data);
       } else {
@@ -517,10 +524,11 @@ export default function DeliveryProcess({ navigation, route }) {
           showModalTrip();
         }
       }
-    } catch (e) {
-      if (e.response) {
+    } catch (error) {
+      if (error.response) {
+        crashlytics().recordError(error);
         console.log("erro na flag");
-        Alert.alert("Atenção", e.response.data.message, [{ text: "OK" }], {
+        Alert.alert("Atenção", error.response.data.message, [{ text: "OK" }], {
           cancelable: false,
         });
       } else {
@@ -570,8 +578,9 @@ export default function DeliveryProcess({ navigation, route }) {
         hideDestine();
         navigation.navigate("Trips");
       }
-    } catch (e) {
-      console.log(e);
+    } catch (error) {
+      crashlytics().recordError(error);
+      console.log(error);
     } finally {
       setButtonLoading(false);
     }
@@ -633,9 +642,10 @@ export default function DeliveryProcess({ navigation, route }) {
       } else {
         showModalOcrInsuccess();
       }
-    } catch (e) {
-      console.log(e.response);
-      console.log("mensagem do ocr->", e.message);
+    } catch (error) {
+      crashlytics().recordError(error);
+      console.log(error.response);
+      console.log("mensagem do ocr->", error.message);
     } finally {
       setOcrLoading(false);
     }
@@ -647,8 +657,9 @@ export default function DeliveryProcess({ navigation, route }) {
       hideModalOcr();
       showModalOcrInsuccess();
       setCurrentNfReport(nfId);
-    } catch (e) {
-      console.log(e.message);
+    } catch (error) {
+      crashlytics().recordError(error);
+      console.log(error.message);
     }
   };
 
@@ -684,13 +695,14 @@ export default function DeliveryProcess({ navigation, route }) {
           cancelable: false,
         });
       }
-    } catch (e) {
-      if (e.response) {
-        Alert.alert("Atenção", e.response.data.errors[0], [{ text: "OK" }], {
+    } catch (error) {
+      crashlytics().recordError(error);
+      if (error.response) {
+        Alert.alert("Atenção", error.response.data.errors[0], [{ text: "OK" }], {
           cancelable: false,
         });
       } else {
-        Alert.alert("Atenção", e.message, [{ text: "OK" }], {
+        Alert.alert("Atenção", error.message, [{ text: "OK" }], {
           cancelable: false,
         });
       }
