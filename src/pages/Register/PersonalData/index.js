@@ -24,6 +24,7 @@ import fundo from "../image/background.png";
 import { api } from "../../../services/api";
 import styles from "./styles";
 import * as Yup from "yup";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 // DEFINIÇÃO DAS MASCARAS, VALIDAÇÕES E REGEX DOS CAMPOS
 Yup.setLocale(yupLocale);
@@ -71,6 +72,7 @@ export default function PersonalData({ navigation }) {
         setRegister(dadosRegistro);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     }
   }
@@ -176,6 +178,7 @@ export default function PersonalData({ navigation }) {
         setVisible(!visible);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       const errorMessages = {};
       if (error && error.inner) {
         const errorItems = error.inner.map((i) => {

@@ -17,6 +17,7 @@ import api_ocr from "../../services/api";
 import Header from "../../components/Header";
 import styles from "./styles";
 import colors from "../../utils/colors";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function Ocr({ navigation }) {
   const [image, setImage] = useState();
@@ -95,6 +96,7 @@ export default function Ocr({ navigation }) {
             }
           }
         } catch (error) {
+          crashlytics().recordError(error);
           console.log(error.message);
           alert("Erro ->", error);
         } finally {

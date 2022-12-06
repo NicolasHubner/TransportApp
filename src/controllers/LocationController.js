@@ -1,7 +1,6 @@
 import * as Location from "expo-location";
 import {
   LAST_LOCATION,
-  ARRAY_LOCATION,
   GPS_STATUS,
   LOCAL_ID,
   TRAVEL_ID,
@@ -12,8 +11,8 @@ import * as Battery from 'expo-battery';
 import StorageController from "./StorageController";
 import { format } from "date-fns";
 import { api } from "../services/api";
-import {getRealmContext} from "../contexts/RealmContext";
 import { LocationDao } from "../daos/LocationDao";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 function LocationController() {
   const saveLocationsTask = async (lat, long, speed) => {
@@ -28,10 +27,8 @@ function LocationController() {
       } else {
         return { code: "FALHOU", success: false };
       }
-      // } else {
-      //   return {code: "SEM VIAGEM", success: false };
-      // }
     } catch (error) {
+      crashlytics().recordError(error);
       return { code: error.message, success: false };
     }
   };
@@ -51,6 +48,7 @@ function LocationController() {
       );
       return true;
     } catch (error) {
+      crashlytics().recordError(error);
       return false;
     }
   };
@@ -66,6 +64,7 @@ function LocationController() {
       
       return true;
     } catch (error) {
+      crashlytics().recordError(error);
       console.log("saveArrayLocations", error.message);
       return false;
     }
@@ -74,7 +73,6 @@ function LocationController() {
   // ENVIA A LOCALIZAÇÃO PARA A API
   const sendLocationsTask = async () => {
     try {
-
       let arrayLocations = await LocationDao.getTop(5);
       console.log("getLocations", arrayLocations);
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
@@ -84,8 +82,8 @@ function LocationController() {
 
       
       let dataEnv = false;
-      if (arrayLocations) {
-        
+      if (arrayLocations.length > 0) {
+        console.log("enviou locations");
         let dateSend = format(new Date(), "yyyy-MM-dd HH:mm:ss");
 
         dataEnv = {
@@ -119,13 +117,14 @@ function LocationController() {
       } else {
         return { code: "FALTA INFO", success: false };
       }
-    } catch (e) {
-      console.log("sendLocationsTask", e.message);
+    } catch (error) {
+      crashlytics().recordError(error);
+      console.log("sendLocationsTask", error.message);
 
-      if (e.response) {
-        return { code: e.response.data, success: false };
+      if (error.response) {
+        return { code: error.response.data, success: false };
       } else {
-        return { code: e.message, success: false };
+        return { code: error.message, success: false };
       }
     }
   };
@@ -149,8 +148,9 @@ function LocationController() {
           timeout: 15000,
         });
       }
-    } catch (e) {
-      console.log(e.message);
+    } catch (error) {
+      crashlytics().recordError(error);
+      console.log(error.message);
     } finally {
       return location;
     }
@@ -169,8 +169,9 @@ function LocationController() {
       const [aux] = endereco;
       const { street: rua } = aux;
       endereco = { rua };
-    } catch (e) {
-      console.log(e.message);
+    } catch (error) {
+      crashlytics().recordError(error);
+      console.log(error.message);
     } 
     return endereco;
   };
@@ -183,8 +184,9 @@ function LocationController() {
         latitude: latitude,
         longitude: longitude,
       });
-    } catch (e) {
-      console.log(e.message);
+    } catch (error) {
+      crashlytics().recordError(error);
+      console.log(error.message);
     }
     return endereco;
   };
@@ -194,8 +196,9 @@ function LocationController() {
     let latLon = null;
     try {
       latLon = await Location.geocodeAsync(address);
-    } catch (e) {
-      console.log(e.message);
+    } catch (error) {
+      crashlytics().recordError(error);
+      console.log(error.message);
     }
     return latLon;
   };

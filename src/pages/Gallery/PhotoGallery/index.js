@@ -11,6 +11,7 @@ import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
 import { Button } from "react-native-paper";
 import styles from "./styles";
+import crashlytics from "@react-native-firebase/crashlytics";
 
 export default function PhotoGallery({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -33,6 +34,7 @@ export default function PhotoGallery({ navigation, route }) {
       let data = await route.params;
       setData(data);
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     } finally {
       setIsBusy(false);
@@ -63,6 +65,7 @@ export default function PhotoGallery({ navigation, route }) {
         await StorageController.imagePhotoSave(images);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log("Erro ao salvar nova imagem", error.message);
     } finally {
       init();
@@ -77,6 +80,7 @@ export default function PhotoGallery({ navigation, route }) {
 
       await StorageController.imagePhotoSave(images);
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     } finally {
       init();
@@ -89,6 +93,7 @@ export default function PhotoGallery({ navigation, route }) {
       await StorageController.removePorChave(IMAGE_PHOTO);
       setLargerImage(null);
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     } finally {
       init();

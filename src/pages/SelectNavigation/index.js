@@ -29,6 +29,7 @@ import { api } from "../../services/api";
 import Checkbox from "expo-checkbox";
 import { format } from "date-fns";
 import styles from "./styles";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function SelectNavigation({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -128,6 +129,7 @@ export default function SelectNavigation({ navigation, route }) {
         setData(response.data.data);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error);
       if (error.response && error.response.status == "404") {
         Alert.alert("Aviso", error.response.data.message, [{ text: "OK" }], {
@@ -168,6 +170,7 @@ export default function SelectNavigation({ navigation, route }) {
         navigation.navigate("LocalDetails", local);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       if (error.response) {
         Alert.alert("AVISO", error.response.data.errors[0], [{ text: "OK" }], {
           cancelable: false,
@@ -209,6 +212,7 @@ export default function SelectNavigation({ navigation, route }) {
         navigation.navigate("TripDetails", travel);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.response);
       if (error.response) {
         Alert.alert("AVISO", error.response.data.errors[0], [{ text: "OK" }], {
@@ -270,6 +274,7 @@ export default function SelectNavigation({ navigation, route }) {
         navigation.navigate("ExpandedMap", params);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     }
   }

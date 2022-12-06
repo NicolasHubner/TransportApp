@@ -23,6 +23,7 @@ import Footer from "../../components/Footer";
 import * as Location from "expo-location";
 import { api } from "../../services/api";
 import styles from "./styles";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function Trips({ navigation }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -51,6 +52,13 @@ export default function Trips({ navigation }) {
       await LocationController.verificaAtivacaoLocalizacao();
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
       const userId = await StorageController.buscarPorChave(USER_ID);
+
+      if(userId) {
+        console.log("setou userId", userId);
+        crashlytics().setAttribute("usuario", userId);
+        crashlytics().setUserId(userId);
+      }
+      
       if (token) {
         const response = await api.get("/app/travels", {
           headers: { Authorization: `bearer ${token}` },
@@ -67,6 +75,7 @@ export default function Trips({ navigation }) {
         }
       }
     } catch (error) {
+      crashlytics().recordError(error);
       if (error.response) {
         console.log(error.response.data);
         if (error.response.status == "401" || error.response.status == "403") {
@@ -141,7 +150,8 @@ export default function Trips({ navigation }) {
           setHasTrip(true);
         }
       }
-    } catch (e) {
+    } catch (error) {
+      crashlytics().recordError(error);
       if (e.response) {
         Alert.alert("Aviso", e.response.data.message, [{ text: "OK" }], {
           cancelable: false,

@@ -15,6 +15,7 @@ import { Button } from "react-native-paper";
 import { api } from "../../services/api";
 import { format } from "date-fns";
 import styles from "./styles";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function TripDetails({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -75,6 +76,7 @@ export default function TripDetails({ navigation, route }) {
         }
       }
     } catch (error) {
+      crashlytics().recordError(error);
       if (error.response.status == "404") {
         Alert.alert(
           "Aviso",
@@ -138,8 +140,9 @@ export default function TripDetails({ navigation, route }) {
           goBack: data.id,
         });
       }
-    } catch (e) {
-      console.log(e.message);
+    } catch (error) {
+      crashlytics().recordError(error);
+      console.log(error.message);
     } finally {
       setIsLoading(false);
       setIsLoadingModal(false);
@@ -179,8 +182,9 @@ export default function TripDetails({ navigation, route }) {
       } else {
         aceptTrip();
       }
-    } catch (e) {
-      console.log(e.message);
+    } catch (error) {
+      crashlytics().recordError(error);
+      console.log(error.message);
     }
   };
 
@@ -206,6 +210,7 @@ export default function TripDetails({ navigation, route }) {
         navigation.navigate("Locals", data.id);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       if (error.response) {
         if (error.response.data.errors[0]) {
           Alert.alert(

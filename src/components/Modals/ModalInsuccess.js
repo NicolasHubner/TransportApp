@@ -11,6 +11,7 @@ import { Button } from "react-native-paper";
 import colors from "../../utils/colors";
 import { api, apiFormData } from "../../services/api";
 import { format } from "date-fns";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function ModalInsuccess({ func, func2, missionId }) {
   const [motivo, setMotivo] = useState("0");
@@ -45,8 +46,9 @@ export default function ModalInsuccess({ func, func2, missionId }) {
         });
         setArrayMotivos(motivos);
       }
-    } catch (e) {
-      console.log("Error",e);
+    } catch (error) {
+      crashlytics().recordError(error);
+      console.log("Error",error);
     }
   };
 
@@ -101,6 +103,7 @@ export default function ModalInsuccess({ func, func2, missionId }) {
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log("ModalInsucess",error.message);
     }
   };
@@ -166,14 +169,15 @@ export default function ModalInsuccess({ func, func2, missionId }) {
         func();
         func2(missionId, token);
       }
-    } catch (e) {
-      if (e.response) {
-        console.log("Erro ao inserir insucesso", e.response.data);
-        Alert.alert("Atenção", e.response.data.errors[0], [{ text: "OK" }], {
+    } catch (error) {
+      crashlytics().recordError(error);
+      if (error.response) {
+        console.log("Erro ao inserir insucesso", error.response.data);
+        Alert.alert("Atenção", error.response.data.errors[0], [{ text: "OK" }], {
           cancelable: false,
         });
       } else {
-        if (e.code === "ECONNABORTED") {
+        if (error.code === "ECONNABORTED") {
           Alert.alert(
             "Tempo excedido",
             "Verifique sua conexão com a internet",
@@ -183,8 +187,8 @@ export default function ModalInsuccess({ func, func2, missionId }) {
             }
           );
         } else {
-          console.log("Error",e);
-          Alert.alert("Atenção", e.message, [{ text: "OK" }], {
+          console.log("Error",error);
+          Alert.alert("Atenção", error.message, [{ text: "OK" }], {
             cancelable: false,
           });
         }

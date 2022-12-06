@@ -9,6 +9,7 @@ import colors from "../../utils/colors";
 import Header from "../../components/Header";
 import { format } from "date-fns";
 import styles from "./styles";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 const Signature = ({ navigation }) => {
   const [isConnected, setIsConnected] = useState();
@@ -47,8 +48,9 @@ const Signature = ({ navigation }) => {
           setAssinatura(dashboardStorage.assinatura);
         }
       }
-    } catch (e) {
-      Alert.alert("AVISO", e.message, [{ text: "OK" }], {
+    } catch (error) {
+      crashlytics().recordError(error);
+      Alert.alert("AVISO", error.message, [{ text: "OK" }], {
         cancelable: false,
       });
     } finally {
@@ -107,8 +109,9 @@ const Signature = ({ navigation }) => {
         });
         navigation.navigate("Home");
       }
-    } catch (e) {
-      Alert.alert("AVISO", e.message, [{ text: "OK" }], {
+    } catch (error) {
+      crashlytics().recordError(error);
+      Alert.alert("AVISO", error.message, [{ text: "OK" }], {
         cancelable: false,
       });
     } finally {

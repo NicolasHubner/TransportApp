@@ -12,6 +12,7 @@ import { StatusBar } from "expo-status-bar";
 import { api } from "../../../services/api";
 import Checkbox from "expo-checkbox";
 import styles from "./styles";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function UseTerms({ navigation }) {
   const [checked, setChecked] = useState(false);
@@ -33,6 +34,7 @@ export default function UseTerms({ navigation }) {
         setTerm(response.data.data.terms_of_use);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       if (error.response) {
         console.log(error.response.data);
       } else {

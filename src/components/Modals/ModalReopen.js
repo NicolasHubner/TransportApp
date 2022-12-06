@@ -3,6 +3,7 @@ import { View, Text, Image, StyleSheet } from "react-native";
 import { Button } from "react-native-paper";
 import Loading from "../Loading";
 import { api } from "../../services/api";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function ModalReopen({
   type,
@@ -38,6 +39,7 @@ export default function ModalReopen({
         }
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.response.data);
     } finally {
       setisLoading(false);

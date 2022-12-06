@@ -6,6 +6,7 @@ import { CommonActions } from "@react-navigation/native";
 import ModalContact from "./Modals/ModalContact";
 import { Button } from "react-native-paper";
 import colors from "../utils/colors";
+import crashlytics from '@react-native-firebase/crashlytics';
 // import ModalTipe from "./Modal";
 
 export default function ListItens({
@@ -46,6 +47,7 @@ export default function ListItens({
         })
       );
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     }
   };

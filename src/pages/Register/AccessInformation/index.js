@@ -24,6 +24,7 @@ import { api } from "../../../services/api";
 import Checkbox from "expo-checkbox";
 import styles from "./styles";
 import * as Yup from "yup";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 Yup.setLocale(yupLocale);
 const INITIAL_VALUES = {
@@ -84,6 +85,7 @@ export default function AccessInformation({ navigation }) {
         setTerms("false");
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     } finally {
       console.log(dadosRegistro);
@@ -165,6 +167,7 @@ export default function AccessInformation({ navigation }) {
         navigation.navigate("Login");
       }
     } catch (error) {
+      crashlytics().recordError(error);
       const errorMessages = {};
       if (error && error.inner) {
         const errorItems = error.inner.map((i) => {

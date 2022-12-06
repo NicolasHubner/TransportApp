@@ -13,6 +13,7 @@ import Footer from "../../components/Footer";
 import colors from "../../utils/colors";
 import { api } from "../../services/api";
 import styles from "./styles";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function ContactLocals({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -47,6 +48,7 @@ export default function ContactLocals({ navigation, route }) {
         setData(response.data.data);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       if (error.response) {
         if (error.response.status == 404) {
           Alert.alert(

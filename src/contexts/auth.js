@@ -8,8 +8,7 @@ import {
   CONNECTED,
 } from "../constants/constants";
 import { api } from "../services/api";
-import { BottomNavigation } from "react-native-paper";
-// import DatabaseController from "../database/controllers/DatabaseController";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 const AuthContext = createContext({ signed: false, user: {} });
 
@@ -40,18 +39,24 @@ export const AuthProvider = ({ children }) => {
 
   // GUARDA OS DADOS DO USER NO CACHE
   async function signIn(token, user, keepConnected) {
+    console.log("user", user);
     setLoading(true);
     try {
       if (user && token) {
         await AsyncStorage.setItem(USER_DATA, JSON.stringify(user));
         await AsyncStorage.setItem(TOKEN_KEY, token);
         await AsyncStorage.setItem(USER_ID, JSON.stringify(user.id));
+        const userId = JSON.stringify(user.id);
+        console.log("userId", userId);
+        crashlytics().setUserId(userId);
+        crashlytics().setAttribute("usuario", userId);
         if (keepConnected) {
           await AsyncStorage.setItem(CONNECTED, JSON.stringify(true));
         }
       }
       setUser(user);
     } catch (error) {
+      crashlytics().recordError(error);
       Alert.alert("AVISO", error.message, [{ text: "OK" }], {
         cancelable: false,
       });
@@ -76,6 +81,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error);
       await AsyncStorage.clear();
       setUser(null);

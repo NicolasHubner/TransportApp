@@ -28,6 +28,7 @@ import ModalLogoff from "./Modals/ModalLogoff";
 import { expo } from "../../app.config.json";
 import { format } from "date-fns";
 import NetInfo from '@react-native-community/netinfo';
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function Header({
   navigation,
@@ -60,10 +61,12 @@ export default function Header({
 
   // SETA O VALOR DO TOKEN
   async function init() {
+    crashlytics().log('Updating user count.');
     try {
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
       setTokenKey(token);
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     }
   }
@@ -77,6 +80,7 @@ export default function Header({
     try {
       signOut();
     } catch (error) {
+      crashlytics().recordError(error);
       Alert.alert("AVISO", error.message, [{ text: "OK" }], {
         cancelable: false,
       });
@@ -104,6 +108,7 @@ export default function Header({
         hideModalNavigation();
       }
     } catch (error) {
+      crashlytics().recordError(error);
       if (error.response) {
         Alert.alert("AVISO", error.response.data.errors[0], [{ text: "OK" }], {
           cancelable: false,
@@ -145,6 +150,7 @@ export default function Header({
         hideModalLocals();
       }
     } catch (error) {
+      crashlytics().recordError(error);
       if (error.response.data.message) {
         Alert.alert("AVISO", error.response.data.message, [{ text: "OK" }], {
           cancelable: false,
@@ -197,8 +203,9 @@ export default function Header({
         console.log("isInternetReachable? - ", networkState?.isInternetReachable);
         setNoNetwork(!networkState?.isInternetReachable);
       });
-    } catch (err) {
-      console.log("getInternetStatus:err", err);
+    } catch (error) {
+      crashlytics().recordError(error);
+      console.log("getInternetStatus:err", error);
     } 
   }
 

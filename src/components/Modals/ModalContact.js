@@ -16,6 +16,7 @@ import { Button, RadioButton } from "react-native-paper";
 import colors from "../../utils/colors";
 import { api, apiFormData } from "../../services/api";
 import { format } from "date-fns";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function ModalContact({
   hideModal,
@@ -64,6 +65,7 @@ export default function ModalContact({
         return Linking.openURL(`https://api.whatsapp.com/send?phone=${phone}`);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     }
   }
@@ -83,7 +85,7 @@ export default function ModalContact({
         await hideModal();
       }
     } catch (error) {
-      // console.log(error.response.data);
+      crashlytics().recordError(error);
       if (error.response) {
         Alert.alert("AVISO", error.response.data.errors[0], [{ text: "OK" }], {
           cancelable: false,
@@ -148,6 +150,7 @@ export default function ModalContact({
         });
       }
     } catch (error) {
+      crashlytics().recordError(error);
       if (error.response) {
         Alert.alert("AVISO", error.response.data.errors[0], [{ text: "OK" }], {
           cancelable: false,

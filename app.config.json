@@ -2,7 +2,7 @@
   "expo": {
     "name": "Trouw+Mobile",
     "slug": "livemobile-dev",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "icon": "./assets/icon.png",
@@ -25,6 +25,18 @@
           "icon": "./assets/icon.png",
           "color": "#ffffff"
         }
+      ],
+      "@react-native-firebase/app",
+      "@react-native-firebase/perf",
+      "@react-native-firebase/crashlytics",
+      "./react-native-maps-plugin",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
       ]
     ],
     "splash": {
@@ -42,7 +54,7 @@
     "ios": {
       "bundleIdentifier": "dev.com.trouw.mobile",
       "supportsTablet": true,
-      "buildNumber": "1.4.20",
+      "buildNumber": "1.4.21",
       "infoPlist": {
         "NSCameraUsageDescription": "Este aplicativo usa a câmera para capturar imagens das notas fiscais de entrega e coleta.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Este aplicativo precisa de acesso para obter a localização atual e informar a api os pontos de coleta e entrega de mecadoria.",
@@ -56,11 +68,12 @@
       },
       "config": {
         "googleMapsApiKey": "AIzaSyCNcKvd7ez5gZp5FuWgplYmaBTJag72c8I"
-      }
+      },
+      "googleServicesFile": "./GoogleService-Info.plist",
     },
     "android": {
-      "package": "com.trouw.mobile",
-      "versionCode": 4,
+      "package": "dev.com.trouw.mobile",
+      "versionCode": 6,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.CAMERA_ROLL",
@@ -79,7 +92,8 @@
         "googleMaps": {
           "apiKey": "AIzaSyCNcKvd7ez5gZp5FuWgplYmaBTJag72c8I"
         }
-      }
+      },
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"

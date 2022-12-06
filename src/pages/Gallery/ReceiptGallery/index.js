@@ -10,6 +10,7 @@ import Header from "../../../components/Header";
 import Footer from "../../../components/Footer";
 import { Button } from "react-native-paper";
 import styles from "./styles";
+import crashlytics from "@react-native-firebase/crashlytics";
 
 export default function ReceiptGallery({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -30,6 +31,7 @@ export default function ReceiptGallery({ navigation, route }) {
       console.log('DATA DATA', data);
       setData(data);
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     } finally {
       setIsBusy(false);
@@ -53,6 +55,7 @@ export default function ReceiptGallery({ navigation, route }) {
         await StorageController.imageReceiptSave(images);
       }
     } catch (error) {
+      crashlytics().recordError(error);
       console.log("Erro ao salvar nova imagem", error.message);
     } finally {
       init();
@@ -67,6 +70,7 @@ export default function ReceiptGallery({ navigation, route }) {
 
       await StorageController.imageReceiptSave(images);
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     } finally {
       init();
@@ -81,6 +85,7 @@ export default function ReceiptGallery({ navigation, route }) {
       await StorageController.imageReceiptSave(images);
       setLargerImage(null);
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
     } finally {
       init();

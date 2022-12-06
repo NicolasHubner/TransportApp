@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import { View, Text, Image, StyleSheet } from "react-native";
 import AuthContext from "../../contexts/auth";
 import { Button } from "react-native-paper";
+import crashlytics from '@react-native-firebase/crashlytics';
 
 export default function ModalFinishTravel({ hideModal, navigation }) {
   const { signOut } = useContext(AuthContext);
@@ -13,6 +14,7 @@ export default function ModalFinishTravel({ hideModal, navigation }) {
     try {
       signOut();
     } catch (error) {
+      crashlytics().recordError(error);
       console.log(error.message);
       Alert.alert("AVISO", error.message, [{ text: "OK" }], {
         cancelable: false,
