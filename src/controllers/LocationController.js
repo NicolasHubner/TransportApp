@@ -82,8 +82,8 @@ function LocationController() {
 
       
       let dataEnv = false;
-      if (arrayLocations) {
-        
+      if (arrayLocations.length > 0) {
+        console.log("enviou locations");
         let dateSend = format(new Date(), "yyyy-MM-dd HH:mm:ss");
 
         dataEnv = {
@@ -119,7 +119,7 @@ function LocationController() {
       }
     } catch (error) {
       crashlytics().recordError(error);
-      console.log("sendLocationsTask", e.message);
+      console.log("sendLocationsTask", error.message);
 
       if (error.response) {
         return { code: error.response.data, success: false };

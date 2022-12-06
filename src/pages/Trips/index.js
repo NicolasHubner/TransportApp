@@ -52,6 +52,13 @@ export default function Trips({ navigation }) {
       await LocationController.verificaAtivacaoLocalizacao();
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
       const userId = await StorageController.buscarPorChave(USER_ID);
+
+      if(userId) {
+        console.log("setou userId", userId);
+        crashlytics().setAttribute("usuario", userId);
+        crashlytics().setUserId(userId);
+      }
+      
       if (token) {
         const response = await api.get("/app/travels", {
           headers: { Authorization: `bearer ${token}` },

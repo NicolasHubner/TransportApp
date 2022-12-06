@@ -39,12 +39,17 @@ export const AuthProvider = ({ children }) => {
 
   // GUARDA OS DADOS DO USER NO CACHE
   async function signIn(token, user, keepConnected) {
+    console.log("user", user);
     setLoading(true);
     try {
       if (user && token) {
         await AsyncStorage.setItem(USER_DATA, JSON.stringify(user));
         await AsyncStorage.setItem(TOKEN_KEY, token);
         await AsyncStorage.setItem(USER_ID, JSON.stringify(user.id));
+        const userId = JSON.stringify(user.id);
+        console.log("userId", userId);
+        crashlytics().setUserId(userId);
+        crashlytics().setAttribute("usuario", userId);
         if (keepConnected) {
           await AsyncStorage.setItem(CONNECTED, JSON.stringify(true));
         }
