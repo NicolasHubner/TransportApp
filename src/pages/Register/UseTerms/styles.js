@@ -57,6 +57,7 @@ import { windowHeight, windowWidth } from "../../../utils/metrics";
 
     modalMargin: {
       margin: 16,
+      padding:10
     },
 
     title: {

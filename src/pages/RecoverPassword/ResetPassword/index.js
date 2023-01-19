@@ -1,3 +1,13 @@
+//*************************************************************************** */
+// Aplicativo TROUW Tecnologia
+// 
+// Alterações
+//
+//  23.12.22 - TIAKI
+//      - alteração da url da api de redefinicao de nova senha
+//
+//*************************************************************************** */
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   ScrollView,
@@ -94,7 +104,7 @@ export default function ResetPassword({ navigation, route }) {
       };
       console.log(validPassword);
 
-      const res = await api.post("/app/new-password", sendPassword);
+      const res = await api.post("/user/new-password", sendPassword); //...23.12.2022
       if (res.data.success) {
         navigation.navigate("Login");
         Alert.alert("", "Senha alterada com sucesso!", [{ text: "OK" }], {

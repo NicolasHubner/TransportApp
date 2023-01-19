@@ -12,11 +12,11 @@ import StorageController from "../../controllers/StorageController";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LAST_LOCATION } from "../../constants/constants";
 import { Button, RadioButton } from "react-native-paper";
-// import apiFormData from "../../services/apiFormData";
 import colors from "../../utils/colors";
-import { api, apiFormData } from "../../services/api";
+import { api } from "../../services/api";
 import { format } from "date-fns";
 import crashlytics from '@react-native-firebase/crashlytics';
+import reactotron from "reactotron-react-native";
 
 export default function ModalContact({
   hideModal,
@@ -35,11 +35,14 @@ export default function ModalContact({
   if (local?.contact) {
     contact = local?.contact;
   }
+
+  reactotron.log(local);
   if (
-    contact.cell_phone ||
-    contact.telephone_1 ||
-    contact.telephone_2 ||
-    contact.telephone_3
+    contact &&
+    ( contact?.cell_phone ||
+    contact?.telephone_1 ||
+    contact?.telephone_2 ||
+    contact?.telephone_3 )
   ) {
     if (contact.cell_phone) {
       contactPhones.push(contact.cell_phone);
@@ -75,7 +78,7 @@ export default function ModalContact({
     setSaveIsLoading(true);
     try {
       const response = await api.put(
-        `/app/travel/local/${local.id}/confirmed`, {},
+        `/mission/${local.id}/confirmed`, {},
         { headers: { Authorization: `bearer ${token}` } }
       );
       if (response) {
@@ -109,24 +112,23 @@ export default function ModalContact({
         lastLocation = JSON.parse(JSON.parse(lastLocation));
       }
 
-      let data = new FormData();
-      data.append(`data[0][status]`, "pending");
-      data.append(`data[0][haveImg]`, "false");
-      data.append(`data[0][lat]`, lastLocation?.lat);
-      data.append(`data[0][long]`, lastLocation?.long);
-      data.append(
-        `data[0][event_at]`,
-        format(new Date(), "yyyy-MM-dd HH:mm:ss")
-      );
+      let data = {data:[]};
+      data.data.push({
+        status: "pending",
+        haveImg: "false",
+        lat: lastLocation?.lat,
+        long: lastLocation?.long,
+        event_at: format(new Date(), "yyyy-MM-dd HH:mm:ss")
+      })
 
-      const response = await apiFormData.post(
-        `/app/travel/local/${local.id}/changeMission`,
+      const response = await api.post(
+        `/mission/${local.id}/change-status`,
         data,
         { headers: { Authorization: `bearer ${token}` } }
       );
 
       const responseLocal = await api.post(
-        `/app/travel/local/${local.travel_local_id}/change-status`,
+        `/local/${local.travel_local_id}/change-status`,
         { status: "EM ANDAMENTO", uuid_group: false },
         { headers: { Authorization: `bearer ${token}` } }
       );

@@ -1,3 +1,9 @@
+//Alterações
+//
+//  TIAKI - 08.12.2022
+//        - alteração no estilo dos icones para ficarem "desabilitados" visualmente
+//        
+
 import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Pressable, Image, Text } from "react-native";
 import * as Linking from "expo-linking";
@@ -20,7 +26,7 @@ export default function Footer({ navigation, rota, radar, localId }) {
         <Pressable onPress={() => console.log("não edita endereço nessa tela")}>
           <Image
             resizeMode="center"
-            style={{ width: 20, height: 20 }}
+            style={radar ? { width: 20, height: 20 } : { width: 20, height: 20, opacity: 0.2 }}
             source={require("./image/radar.png")}
           />
         </Pressable>
@@ -41,21 +47,21 @@ export default function Footer({ navigation, rota, radar, localId }) {
       <Pressable onPress={() => console.log("bell")}>
         <Image
           resizeMode="center"
-          style={{ width: 20, height: 20 }}
+          style={{ width: 20, height: 20, opacity: 0.2 }}
           source={require("./image/bell.png")}
         />
       </Pressable>
       <Pressable onPress={() => console.log("message")}>
         <Image
           resizeMode="center"
-          style={{ width: 20, height: 20 }}
+          style={{ width: 20, height: 20, opacity: 0.2 }}
           source={require("./image/message.png")}
         />
       </Pressable>
       <Pressable onPress={() => console.log("menu")}>
         <Image
           resizeMode="center"
-          style={{ width: 20, height: 20 }}
+          style={{ width: 20, height: 20, opacity: 0.2 }}
           source={require("./image/menu.png")}
         />
       </Pressable>

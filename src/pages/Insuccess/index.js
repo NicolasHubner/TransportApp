@@ -112,7 +112,7 @@ export default function Insuccess({ navigation, route }) {
         longitude: lastLocation?.long,
       };
       const response = await api.post(
-        `/app/travel/${trip}/change-status`,
+        `/travel/${trip}/change-status`,
         objSend,
         { headers: { Authorization: `bearer ${token}` } }
       );

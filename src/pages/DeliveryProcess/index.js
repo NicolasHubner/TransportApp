@@ -1,3 +1,11 @@
+//Alterações
+//
+//  TIAKI - 30.11.2022 - 06.12.2022
+//        - alteração da função pickImageReceipt
+//        - alteração da função pickImagePhoto
+//        - implementação da CameraController
+//
+
 import React, { useState, useEffect, useContext } from "react";
 import {
   View,
@@ -13,6 +21,7 @@ import {
 import ModalLeavingMission from "../../components/Modals/ModalLeavingMission";
 import LocationController from "../../controllers/LocationController";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import CameraController from "../../controllers/CameraController";
 import StorageController from "../../controllers/StorageController";
 import ModalInsuccess from "../../components/Modals/ModalInsuccess";
 import ModalContact from "../../components/Modals/ModalContact";
@@ -24,18 +33,14 @@ import { ScrollView } from "react-native-gesture-handler";
 import ModalOcr from "../../components/Modals/ModalOcr";
 import RNPickerSelect from "react-native-picker-select";
 import NetInfo from "@react-native-community/netinfo";
-// import apiFormData from "../../services/apiFormData";
 import * as ImagePicker from "expo-image-picker";
-// import RouteStatus from "../../components/RouteStatus";
-// import {removeAllTasks} from "../../backgroundTasks";
 import Loading from "../../components/Loading";
 import Spinner from "../../components/Spinner";
 import AuthContext from "../../contexts/auth";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { Button } from "react-native-paper";
-// import apiOcr from "../../services/apiOcr";
-import { api, apiFormData, apiOcr } from "../../services/api";
+import { api, apiOcr } from "../../services/api";
 import {
   IMAGE_RECEIPT,
   IMAGE_PHOTO,
@@ -48,8 +53,10 @@ import {
 import { format } from "date-fns";
 import styles from "./styles";
 import crashlytics from '@react-native-firebase/crashlytics';
+import { TravelController } from "../../controllers/TravelController";
 
 export default function DeliveryProcess({ navigation, route }) {
+
   const [address, setAddress] = useState("");
   const [isBusy, setIsBusy] = useState(true);
   // const [hasTrip, setHasTrip] = useState(true);
@@ -186,33 +193,31 @@ export default function DeliveryProcess({ navigation, route }) {
       setMissionId(missionId);
 
       if (localId && missionId) {
-        const response = await api.get(
-          `/app/travel/local/${localId}/missions/${missionId}`,
-          { headers: { Authorization: `bearer ${token}` } }
-        );
+        console.log("localId",localId);
+        const response = await TravelController.getMission(token, missionId);
         if (response) {
           // console.log("########### ->", response.data.data.travel_documents);
-          setDocumentsLength(response.data.data.travel_documents.length);
-          setTravelId(response.data.data.travel_id);
-          setDocuments(response.data.data.travel_documents);
-          setAddress(response.data.data.address);
-          setMission(response.data.data.mission);
+          setDocumentsLength(response.travel_documents.length);
+          setTravelId(response.travel_id);
+          setDocuments(response.travel_documents);
+          setAddress(response.address);
+          setMission(response.mission);
           setMissionLocation({
-            latitude: JSON.parse(response.data.data.latitud),
-            longitude: JSON.parse(response.data.data.longitud),
+            latitude: JSON.parse(response.latitud),
+            longitude: JSON.parse(response.longitud),
           });
         }
       }
-      const responseReason = await api.get(`/app/failure/reasons`, {
-        params: { type: 2 },
-        headers: { Authorization: `bearer ${token}` },
-      });
-      if (responseReason) {
-        const motivos = responseReason.data;
-        motivos.unshift({
+
+      const responseReason = await TravelController.getInsuccessType(token, 2);
+      if (responseReason.length > 0) {
+        let motivos = [];
+        motivos.push({
           label: "Selecione um motivo:",
           value: 0,
         });
+        motivos = motivos.concat(responseReason);
+
         setArrayMotivos(motivos);
       }
     } catch (error) {
@@ -253,7 +258,7 @@ export default function DeliveryProcess({ navigation, route }) {
     // setVisible(false);
   };
 
-  // QUARDA O VALOR DE MOTIVO
+  // GUARDA O VALOR DE MOTIVO
   function selecionaMotivo(id) {
     setMotivo(id);
     if (id === 0) {
@@ -307,9 +312,10 @@ export default function DeliveryProcess({ navigation, route }) {
     }
   };
 
-  // PEGA A IMAGEM DA CÂMERA
+  //EDIÇÃO TIAKI 06.12.2022 - antigo pickImageReceipt - PERMISSAO DE CAMERA E MANIPULACAO DE FOTO DO CANHOTO
   const pickImageReceipt = async (nfId, nf) => {
     try {
+      console.log("bem vindo ao foto de canhoto");
       // setReturnPage(true);
       let tentativa = attempt ? attempt : [];
       if (!tentativa[nfId] || tentativa[nfId] < 3) {
@@ -324,45 +330,51 @@ export default function DeliveryProcess({ navigation, route }) {
             cancelable: false,
           });
         } else {
-          let camera = await ImagePicker.getCameraPermissionsAsync();
-          let media = await ImagePicker.getMediaLibraryPermissionsAsync();
+          console.log("camera canhoto")
+          const permissao = await CameraController.verificaPermissoes()
 
-          if (camera.granted && media.granted) {
-            let result = await ImagePicker.launchCameraAsync({
+          //se a permissao foi concedida e o usuario tirou uma foto, ocorre a manipulacao da foto do canhoto
+          if (permissao) {
+
+            let foto = await ImagePicker.launchCameraAsync({
               mediaTypes: ImagePicker.MediaTypeOptions.Images,
               allowsEditing: true,
+              quality: 0.5,
               base64: true,
             });
 
-            if (result.uri) {
-              const dataCompressed = await ImageManipulator.manipulateAsync(
-                result.uri,
-                [{ resize: { width: 600 } }],
-                { compress: 0.8 }
-              );
+            console.log("tirou canhoto: " + foto);
 
-              if (dataCompressed.uri) {
-                const ocr = await validateOcr(result.base64, nf, nfId);
-                if (ocr) {
-                  nf_images[nfId] = {
-                    image: dataCompressed.uri,
-                    verified: true,
-                  };
-                  let quantity = imageQuantity + 1;
-                  setImageQuantity(quantity);
-                } else {
-                  nf_images[nfId] = {
-                    image: dataCompressed.uri,
-                    verified: "",
-                  };
-                }
-                console.log("data ->", nf_images[nfId].verified);
-                await StorageController.imageReceiptSave(nf_images);
+            const dataCompressed = await ImageManipulator.manipulateAsync(
+              foto.uri,
+              [{ resize: { width: 600 } }],
+              { compress: 0.8 }
+            );
+            console.log(dataCompressed);
+            console.log("manipulou canhoto");
+
+            if (dataCompressed) {
+              console.log("validando OCR");
+              const ocr = await validateOcr(foto.base64, nf, nfId);
+              if (ocr) {
+                console.log("ocr ok");
+                nf_images[nfId] = {
+                  image: dataCompressed.uri,
+                  verified: true,
+                };
+                let quantity = imageQuantity + 1;
+                setImageQuantity(quantity);
+              } else {
+                console.log("ocr nao validado");
+                nf_images[nfId] = {
+                  image: dataCompressed.uri,
+                  verified: "",
+                };
               }
+              console.log("data ->", nf_images[nfId].verified);
+              await StorageController.imageReceiptSave(nf_images); //salva a foto no AsyncStorage
+              console.log("salvou canhoto");
             }
-          } else {
-            await ImagePicker.requestCameraPermissionsAsync();
-            await ImagePicker.requestMediaLibraryPermissionsAsync();
           }
         }
       } else {
@@ -370,59 +382,71 @@ export default function DeliveryProcess({ navigation, route }) {
       }
     } catch (error) {
       crashlytics().recordError(error);
-      console.log("DeliveredProcess.pickImageReceipt",error.message);
+      console.log("DeliveredProcess.pickImageReceipt", error.message);
     } finally {
       init();
     }
   };
+  //FIM EDICAO 06.12.2022
 
-  // PEGA A IMAGEM DA GALERIA
+  //EDIÇÃO TIAKI 30.11.2022 - antigo pickImagePhoto - PERMISSAO DE CAMERA E GALERIA, E MANIPULACAO DE FOTO 
   const pickImagePhoto = async () => {
     try {
       setReturnPage(true);
-      if (imagePhoto) {
-        navigation.navigate("PhotoGallery", mission);
-      } else {
-        let camera = await ImagePicker.getCameraPermissionsAsync();
-        let media = await ImagePicker.getMediaLibraryPermissionsAsync();
 
-        if (camera.granted && media.granted) {
-          let result = await ImagePicker.launchCameraAsync({
+      //caso ja exista uma foto, abre a galeria de fotos do app
+      if (imagePhoto) {
+        console.log("galeria")
+        navigation.navigate("PhotoGallery", mission);
+
+        //caso n exista, solicita o uso da camera
+      } else {
+        console.log("camera")
+        const permissao = await CameraController.verificaPermissoes()
+
+        //se a permissao foi concedida e o usuario tirou uma foto, ocorre a manipulacao da foto
+        if (permissao) {
+
+          let foto = await ImagePicker.launchCameraAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             quality: 0.5,
-            // base64: true,
+            base64: true,
           });
 
+          console.log("tirou foto: " + JSON.stringify(foto));
+
           const dataCompressed = await ImageManipulator.manipulateAsync(
-            result.uri,
+            foto.uri,
             [{ resize: { width: 600 } }],
             { compress: 0.8 }
           );
+          console.log(dataCompressed.base64);
+          console.log("manipulou foto");
 
           if (dataCompressed) {
             let imagesPhoto = [dataCompressed.uri];
-            await StorageController.imagePhotoSave(imagesPhoto);
+            await StorageController.imagePhotoSave(imagesPhoto); //salva a foto no AsyncStorage
           }
-        } else {
-          await ImagePicker.requestCameraPermissionsAsync();
-          await ImagePicker.requestMediaLibraryPermissionsAsync();
+          console.log("salvou foto");
         }
       }
     } catch (error) {
       crashlytics().recordError(error);
-      console.log("DeliveryProcess.pickImagePhoto",error.message);
+      console.log("DeliveryProcess.pickImagePhoto", error.message);
     } finally {
+      console.log("finalizou");
       init();
     }
   };
+  //FIM EDICAO 06.12.2022
 
   // CONCLUI A MISSÃO
   async function finishDelivery() {
     try {
       setButtonLoading(true);
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
-      let data = new FormData();
+      let data = {data: []};
 
       let lastLocation = await StorageController.buscarPorChave(LAST_LOCATION);
       console.log(lastLocation);
@@ -430,44 +454,49 @@ export default function DeliveryProcess({ navigation, route }) {
         lastLocation = JSON.parse(JSON.parse(lastLocation));
       }
 
-      data.append(`data[0][status]`, "success");
-      data.append(`data[0][haveImg]`, "true");
-      data.append(`data[0][lat]`, lastLocation?.lat || null);
-      data.append(`data[0][long]`, lastLocation?.long || null);
-      data.append(
-        `data[0][event_at]`,
-        format(new Date(), "yyyy-MM-dd HH:mm:ss")
-      );
-
-      let cont = 0;
-      if (imageReceipt) {
-        imageReceipt.map((value, index) => {
-          if (value) {
-            data.append(`data[${cont}][img]`, {
-              uri: value.image,
-              name: `data[${cont}][img]`,
-              type: "image/jpg",
+      let dataObj = {
+        status: "success",
+        haveImg: "true",
+        lat: lastLocation?.lat || null,
+        long: lastLocation?.long || null,
+        event_at: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
+        img: []
+      };
+      
+      if (imageReceipt && imageReceipt.length > 0 ) {
+        for(let i = 0; i < imageReceipt.length; i++) {
+          const value = imageReceipt[i];
+          if(value) {
+            console.log("value", value);
+            const imageData = await ImageManipulator.manipulateAsync(value.image, [], {base64: true});
+            dataObj.img.push({
+              uri: imageData.base64 || null,
+              name: imageData.name,
+              type: imageData.type,
+              image_type: "canhoto",
+              documentId: i
             });
-            data.append(`data[${cont}][image_type]`, "canhoto");
-            data.append(`data[${cont}][documentId]`, index);
-            cont++;
           }
+        }
+      }
+
+      for(let i = 0; i < imagePhoto.length; i++) {
+        const value = imagePhoto[i];
+        const imageData = await ImageManipulator.manipulateAsync(value, [], {base64: true});
+        dataObj.img.push({
+          uri: imageData.base64 || null,
+          name: imageData.name,
+          type: imageData.typem,
+          image_type: "fachada"
         });
       }
 
-      imagePhoto.map((value, index) => {
-        data.append(`data[${cont}][img]`, {
-          uri: value,
-          name: `data[${cont}][img]`,
-          type: "image/jpg",
-        });
-        data.append(`data[${cont}][image_type]`, "fachada");
-        cont++;
-      });
+      data.data.push(dataObj);
+      console.log("finalizar2", data);
 
       if (isConnected) {
-        const response = await apiFormData.post(
-          `/app/travel/local/${mission.id}/changeMission`,
+        const response = await api.post(
+          `/mission/${mission.id}/change-status`,
           data,
           { headers: { Authorization: `bearer ${token}` } }
         );
@@ -502,11 +531,14 @@ export default function DeliveryProcess({ navigation, route }) {
   // VERIFICA A PRÓXIMA AÇÃO APÓS FINALIZAR A MISSÃO
   const nextAction = async (missionId, token) => {
     try {
+      console.log("missionId", missionId);
       const response = await api.post(
-        `/app/travel/mission/${missionId}/next-step?token=${token}`,
+        `/mission/${missionId}/next-step`,
         {},
         { headers: { Authorization: `bearer ${token}` } }
       );
+
+      console.log("response", response.data.data);
       if (response) {
         await StorageController.removePorChave(LOCAL_ID);
         setDataFlag(response.data.data);
@@ -569,7 +601,7 @@ export default function DeliveryProcess({ navigation, route }) {
       };
 
       const responseTravel = await api.post(
-        `/app/travel/${travelId}/change-status`,
+        `/travel/${travelId}/change-status`,
         objSend,
         { headers: { Authorization: `bearer ${tokenKey}` } }
       );
@@ -677,8 +709,10 @@ export default function DeliveryProcess({ navigation, route }) {
         report = { ...report, failure_reasons: observation };
       }
 
+      console.log("data", report);
+      console.log("localId", localId);
       const response = await api.put(
-        `/app/travel/local/${localId}/document`,
+        `/document/${currentNfReport}`,
         report,
         { headers: { Authorization: `bearer ${tokenKey}` } }
       );

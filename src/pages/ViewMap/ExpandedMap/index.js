@@ -36,6 +36,7 @@ import {api} from "../../../services/api";
 import { format } from "date-fns";
 import styles from "./styles";
 import crashlytics from '@react-native-firebase/crashlytics';
+import { TravelController } from "../../../controllers/TravelController";
 
 export default function ExpandedMap({ navigation, route }) {
   const [activeDestineChange, setActiveDestineChange] = useState(false);
@@ -114,12 +115,12 @@ export default function ExpandedMap({ navigation, route }) {
       // }
 
       // FAZ A REQUISIÇÃO PARA PEGAR E GUARDAR OS DADOS DO LOCAL DE DESTINO
-      const response = await api.get(
-        `/app/travel/local/${idLocal}/navigation`, {headers: { Authorization: `bearer ${tokenKey}` }}
-      );
+      const response = await TravelController.getLocalNavigation(tokenKey, idLocal);
+
+      console.log("has_mission", response.has_mission)
       if (response) {
-        setTravel(response.data.data.travel_id);
-        setHasMission(response.data.has_mission);
+        setTravel(response.data.travel_id);
+        setHasMission(response.has_mission);
         // if (map && map === "waze") {
         //   Linking.openURL(response.data.data.wazer);
         // } else if (map && map === "android") {
@@ -129,14 +130,14 @@ export default function ExpandedMap({ navigation, route }) {
         // }
         if (destineLocation.latitude === 0) {
           const location = {
-            latitude: JSON.parse(response.data.data.lat),
-            longitude: JSON.parse(response.data.data.long),
+            latitude: JSON.parse(response.data.location_latitud),
+            longitude: JSON.parse(response.data.location_longitud),
             latitudeDelta: 0.02,
             longitudeDelta: 0.02,
           };
           setDestineLocation(location);
         }
-        setData(response.data.data);
+        setData(response.data);
       }
     } catch (error) {
 
@@ -193,10 +194,13 @@ export default function ExpandedMap({ navigation, route }) {
             //   address: endereco,
             // },
           };
+
+          console.log("event1", event);
+
           //INCLUI A VERIFICAÇÃO DE MISSÔES PARA O LOCAL
           if (hasMission) {
             const responseEvent = await api.post(
-              `/app/travel/${travel}/events`,
+              `/travel/event/${travel}`,
               event, {headers: { Authorization: `bearer ${token}` }}
             );
             if (responseEvent) {
@@ -206,7 +210,7 @@ export default function ExpandedMap({ navigation, route }) {
           } else {
             // FAZ A REQUISIÇÃO DE MUDAR O STATUS DO LOCAL PARA CONCLUIDO
             const response = await api.post(
-              `/app/travel/local/${local}/change-status`,
+              `/local/${local}/change-status`,
               { status: "CONCLUIDO", uuid_group: true }, {headers: { Authorization: `bearer ${token}` }}
             );
             if (response) {
@@ -216,12 +220,13 @@ export default function ExpandedMap({ navigation, route }) {
                 longitude: newLocation.longitude,
                 event_at: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
               };
+
               // FAZ A REQUISIÇÃO DE MUDAR O STATUS DA VIAGEM PARA CONCLUIDO
               const responseTravel = await api.post(
-                `/app/travel/${travel}/change-status`, objSend, {headers: { Authorization: `bearer ${token}` }});
+                `/travel/${travel}/change-status`, objSend, {headers: { Authorization: `bearer ${token}` }});
               if (responseTravel) {
                 const responseEvent = await api.post(
-                  `/app/travel/${travel}/events`,
+                  `/travel/event/${travel}`,
                   event, {headers: { Authorization: `bearer ${token}` }}
                 );
                 if (responseEvent) {

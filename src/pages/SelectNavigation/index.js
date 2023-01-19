@@ -30,6 +30,7 @@ import Checkbox from "expo-checkbox";
 import { format } from "date-fns";
 import styles from "./styles";
 import crashlytics from '@react-native-firebase/crashlytics';
+import { TravelController } from "../../controllers/TravelController";
 
 export default function SelectNavigation({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -113,24 +114,22 @@ export default function SelectNavigation({ navigation, route }) {
       }
       setLocal(id);
 
-      const response = await api.get(`/app/travel/local/${id}/navigation`, {
-        headers: { Authorization: `bearer ${token}` },
-      });
+      const response = await TravelController.getLocalNavigation(token, id);
 
       if (response) {
-        setNavigationRoutes(response.data.data);
+        setNavigationRoutes(response.data);
         const coord = {
-          latitude: JSON.parse(response.data.data.lat),
-          longitude: JSON.parse(response.data.data.long),
+          latitude: JSON.parse(response.data.location_latitud),
+          longitude: JSON.parse(response.data.location_longitud),
           latitudeDelta: 0.02,
           longitudeDelta: 0.02,
         };
         StorageController.salvarPorChave(LOCAL_COORD, JSON.stringify(coord));
-        setData(response.data.data);
+        setData(response.data);
       }
     } catch (error) {
       crashlytics().recordError(error);
-      console.log(error);
+
       if (error.response && error.response.status == "404") {
         Alert.alert("Aviso", error.response.data.message, [{ text: "OK" }], {
           cancelable: false,
@@ -162,7 +161,7 @@ export default function SelectNavigation({ navigation, route }) {
       setLoading(true);
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
       const response = await api.post(
-        `/app/travel/local/${local}/change-status`,
+        `/local/${local}/change-status`,
         { status: "PENDENTE", uuid_group: true },
         { headers: { Authorization: `bearer ${token}` } }
       );
@@ -204,7 +203,7 @@ export default function SelectNavigation({ navigation, route }) {
       };
 
       const response = await api.post(
-        `/app/travel/${travel}/change-status`,
+        `/travel/${travel}/change-status`,
         objSend,
         { headers: { Authorization: `bearer ${token}` } }
       );
@@ -301,7 +300,7 @@ export default function SelectNavigation({ navigation, route }) {
             <View style={styles.margin}>
               <View style={styles.order}>
                 <Text style={styles.textOrder}>Order N.º {data.travel_id}</Text>
-                <Text>Obs: {data.obs}</Text>
+                <Text>Obs: {data.observation}</Text>
               </View>
               <View style={styles.image}>
                 <View style={{ justifyContent: "space-between" }}>
@@ -326,7 +325,7 @@ export default function SelectNavigation({ navigation, route }) {
                   style={{ width: "35%", color: "#2F2F2F", textAlign: "right" }}
                 >
                   {" "}
-                  Qtd. / Itens: {data.total}
+                  Qtd. / Itens: {data.total_missions}
                 </Text>
               </View>
               <View style={styles.maps}>

@@ -1,0 +1,31 @@
+import { Realm } from "@realm/react";
+
+export const TravelSchema = {
+  name: "Travel",
+  primaryKey: "id",
+  properties: {
+    id: "int",
+    uuid: "string?",
+    user_id: "int",
+    cpf: "string?",
+    date: "string?",
+    start_schedule: "string?",
+    exit_schedule: "string?",
+    finish_schedule: "string?",
+    origin_name: "string?",
+    destiny_name: "string?",
+    observation: "string?",
+    qty_local: {type: "int", default: 0},
+    distance: {type: "int", default: 0},
+    completed_locals: {type: "int", default: 0},
+    total_locals: {type: "int", default: 0},
+    origin_id: "int",
+    origin_latitude: "string?",
+    origin_longitude: "string?",
+    origin_type: "string?",
+    status: "string?",
+    not_confirmed: {type: "int", default: 0},
+    icon: "string?",
+    is_late: "bool",
+  },
+};

@@ -94,7 +94,7 @@ export default function Header({
       await StorageController.removePorChave(LOCAL_COORD);
       await StorageController.removePorChave(ARRIVAL_NOTIFICATION);
       const response = await api.post(
-        `/app/travel/local/${id}/change-status`,
+        `/local/${id}/change-status`,
         { status: "PENDENTE", uuid_group: true },
         { headers: { Authorization: `bearer ${tokenKey}` } }
       );
@@ -140,7 +140,7 @@ export default function Header({
       };
 
       const response = await api.post(
-        `/app/travel/${id}/change-status`,
+        `/travel/${id}/change-status`,
         objSend,
         { headers: { Authorization: `bearer ${token}` } }
       );

@@ -1,3 +1,13 @@
+//*************************************************************************** */
+// Aplicativo TROUW Tecnologia
+// 
+// Alterações
+//
+//  23.12.22 - TIAKI
+//      - alteração da url da api de registrar novo usuario
+//
+//*************************************************************************** */
+
 import React, { useState, useEffect, useContext, useRef } from "react";
 import {
   Platform,
@@ -157,7 +167,8 @@ export default function AccessInformation({ navigation }) {
     try {
       setSending(true);
       await schema.validate(register, { abortEarly: false });
-      const response = await api.post("/app/user/register", register);
+     const response = await api.post("/user/register", register); //...23.12.2022
+     
       // console.log(response.data);
       if (response.data.success) {
         await AsyncStorage.removeItem(REGISTER);

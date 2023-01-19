@@ -25,7 +25,8 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { api } from "../../services/api";
 import styles from "./styles";
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from "@react-native-firebase/crashlytics";
+import { TravelController } from "../../controllers/TravelController";
 
 export default function Missions({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -66,46 +67,25 @@ export default function Missions({ navigation, route }) {
       await StorageController.removePorChave(IMAGE_RECEIPT);
       await StorageController.removePorChave(IMAGE_PHOTO);
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
-      // let mergedLocals = await StorageController.buscarPorChave(MERGED_LOCALS);
 
-      // if (mergedLocals) {
-      //   mergedLocals = JSON.parse(mergedLocals);
-      // }
-      // const localss = {
-      //   "locals": mergedLocals
-      // }
-      // setLocals(mergedLocals);
-      // console.log('locals', localss);
       const id = await route.params;
       setLocalId(id);
-      // console.log('ID que chegou aqui', route);
-      // setLocalId(id);
-      const response = await api.get(`/app/travel/local/${id}/missions`, {
-        headers: { Authorization: `bearer ${token}` },
-      });
-      // const response = await api.post(
-      //   `/app/travel/local/missions`, localss, {headers: { Authorization: `bearer ${token}` }}
-      // );
 
-      // console.log(response.data);
+      const response = await TravelController.getLocalMissions(token, id);
+
       if (response) {
         // console.log('MISSIONS ---->', response.data.data.missions);
-        setTravelId(response.data.data.travel_id);
-        setLocal(response.data.data.local);
-        setMissions(response.data.data.missions);
+        setTravelId(response.travel_id);
+        setLocal(response.local);
+        setMissions(response.missions);
       }
     } catch (error) {
       crashlytics().recordError(error);
       console.log(error.message);
       if (error.response.data) {
-        Alert.alert(
-          "Aviso",
-          error.response.data.message,
-          [{ text: "OK" }],
-          {
-            cancelable: false,
-          }
-        );
+        Alert.alert("Aviso", error.response.data.message, [{ text: "OK" }], {
+          cancelable: false,
+        });
       } else if (error.message) {
         if (error.code === "ECONNABORTED") {
           Alert.alert(
@@ -130,6 +110,7 @@ export default function Missions({ navigation, route }) {
   // FAZ A FUNÇÃO INIT ASSIM QUE A PÁGINA INICIALIZA
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
+      console.log("focus");
       init();
     });
 
@@ -142,7 +123,7 @@ export default function Missions({ navigation, route }) {
       setLoading(true);
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
       const response = await api.post(
-        `/app/travel/local/${localId}/change-status`,
+        `/local/${localId}/change-status`,
         { status: "PENDENTE", uuid_group: true },
         { headers: { Authorization: `bearer ${token}` } }
       );
@@ -214,10 +195,10 @@ export default function Missions({ navigation, route }) {
                     </View>
                     <View>
                       <Text style={styles.textRegular}>
-                        Quantidade / Itens total: {local.quantity}
+                        Quantidade / Itens total: {local.total_missions}
                       </Text>
                       <Text style={styles.textBold}>
-                        Inicio / Fim: {local.start_hour} às {local.finish_hour}
+                        Inicio / Fim: {local.start} às {local.end}
                       </Text>
                     </View>
                   </View>
@@ -237,7 +218,7 @@ export default function Missions({ navigation, route }) {
                         uri: local.icon,
                       }}
                     ></Image>
-                    <Text style={styles.textSemiBold}>{local.start_date}</Text>
+                    <Text style={styles.textSemiBold}>{local.date}</Text>
                   </View>
                 </View>
               </View>
@@ -365,7 +346,9 @@ export default function Missions({ navigation, route }) {
                             <View style={styles.obsContainer}>
                               {data.description && (
                                 <Text style={styles.text12}>
-                                  {data.description ? `"${data.description}"` : ''}
+                                  {data.description
+                                    ? `"${data.description}"`
+                                    : ""}
                                 </Text>
                               )}
                             </View>

@@ -24,6 +24,7 @@ import * as Location from "expo-location";
 import { api } from "../../services/api";
 import styles from "./styles";
 import crashlytics from '@react-native-firebase/crashlytics';
+import { TravelController } from "../../controllers/TravelController";
 
 export default function Trips({ navigation }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -48,25 +49,22 @@ export default function Trips({ navigation }) {
   async function init() {
     try {
       setIsBusy(true);
-      await LocationController.verificaAutorizacaoLocalizacao();
+      await LocationController.verificaAutorizacaoBackgroundLocalizacao();
       await LocationController.verificaAtivacaoLocalizacao();
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
       const userId = await StorageController.buscarPorChave(USER_ID);
-
+      
       if(userId) {
-        console.log("setou userId", userId);
         crashlytics().setAttribute("usuario", userId);
         crashlytics().setUserId(userId);
       }
       
       if (token) {
-        const response = await api.get("/app/travels", {
-          headers: { Authorization: `bearer ${token}` },
-        });
-        if (response.data.success && response.data.data.length > 0) {
-          setData(response.data.data);
+        const response = await TravelController.getTravels(token);
+        if (response.length > 0) {
+          setData(response);
           setHasTrip(true);
-          let arrayTrips = response.data.data;
+          let arrayTrips = response;
           arrayTrips.map(function (item) {
             if (item.status == "EM ANDAMENTO") {
               navigation.navigate("Locals", item.id);
@@ -75,6 +73,7 @@ export default function Trips({ navigation }) {
         }
       }
     } catch (error) {
+      console.log(error);
       crashlytics().recordError(error);
       if (error.response) {
         console.log(error.response.data);
@@ -138,26 +137,25 @@ export default function Trips({ navigation }) {
   //efetua um refresh (atualização) na lista de viagens da tela
   const refreshPage = async () => {
     try {
+      
       setRefreshLoading(true);
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
       if (token) {
-        const response = await api.get("/app/travels", {
-          headers: { Authorization: `bearer ${token}` },
-        });
-        if (response.data.success && response.data.data.length > 0) {
-          console.log("setou");
-          setData(response.data.data);
+        const response = await TravelController.getTravels(token);
+
+        if (response.length > 0) {
+          setData(response);
           setHasTrip(true);
         }
       }
     } catch (error) {
       crashlytics().recordError(error);
-      if (e.response) {
-        Alert.alert("Aviso", e.response.data.message, [{ text: "OK" }], {
+      if (error.response) {
+        Alert.alert("Aviso", error.response.data.message, [{ text: "OK" }], {
           cancelable: false,
         });
       } else {
-        Alert.alert("Aviso", e.message, [{ text: "OK" }], {
+        Alert.alert("Aviso", error.message, [{ text: "OK" }], {
           cancelable: false,
         });
       }
@@ -189,11 +187,8 @@ export default function Trips({ navigation }) {
                   data={data}
                   onRefresh={refreshPage}
                   refreshing={refreshLoading}
-                  // style={{marginHorizontal: 5}}
                   keyExtractor={(trip) => String(trip.id)}
                   showsVerticalScrollIndicator={false}
-                  // onEndReachedThreshold={0.2}
-                  // onEndReached={exibirBotao}
                   renderItem={({ item: trip }) => (
                     <View style={styles.background}>
                       <Pressable
@@ -226,7 +221,7 @@ export default function Trips({ navigation }) {
                                   { marginTop: 10 },
                                 ]}
                               >
-                                {trip.origin}
+                                {trip.origin_name}
                               </Text>
                             </View>
                             <View
@@ -256,22 +251,6 @@ export default function Trips({ navigation }) {
                                 >
                                   {trip.start_schedule}
                                 </Text>
-                                {/* 
-                              INFORMAÇÃO NÃO CONSTARÁ EM VIAGENS LIVRES, APENAS EM VIAGENS CONTROLADAS
-                              <Text
-                                numberOfLines={1}
-                                style={[
-                                  styles.textSansRegular,
-                                  { marginTop: 6 },
-                                ]}
-                              >
-                                Término previsto:
-                              </Text>
-                              <Text
-                                style={[styles.textSansBold, { fontSize: 16, fontWeight: "bold" }]}
-                              >
-                                {trip.finish_schedule}
-                              </Text> */}
                               </View>
                             </View>
                             <View

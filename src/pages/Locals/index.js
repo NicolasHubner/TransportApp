@@ -30,6 +30,7 @@ import { api } from "../../services/api";
 import { format } from "date-fns";
 import styles from "./styles";
 import crashlytics from '@react-native-firebase/crashlytics';
+import { TravelController } from "../../controllers/TravelController";
 
 export default function Locals({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -70,11 +71,10 @@ export default function Locals({ navigation, route }) {
       if (id) {
         setTravel(id);
       }
-      const response = await api.get(`/app/travel/${id ? id : travel}/locals`, {
-        headers: { Authorization: `bearer ${token}` },
-      });
+
+      const response = await TravelController.getTravelLocalsMerged(token, (id ? id : travel))
       // console.log("quando chega na lista de locais --->", response);
-      if (response) {
+      if (response?.length > 0) {
         let destiny = await StorageController.buscarPorChave(DESTINY_PAGE);
         if (destiny) {
           destiny = JSON.parse(destiny);
@@ -83,7 +83,7 @@ export default function Locals({ navigation, route }) {
             destiny: true,
           });
         } else {
-          let arrayTrips = response.data.data;
+          let arrayTrips = response;
           // console.log("lista de locais --->", arrayTrips);
           arrayTrips.map(function (item) {
             if (item.status == "EM ANDAMENTO") {
@@ -95,7 +95,7 @@ export default function Locals({ navigation, route }) {
             }
           });
         }
-        setData(response.data.data);
+        setData(response);
       }
       // console.log(travelId.id);
     } catch (error) {
@@ -151,7 +151,7 @@ export default function Locals({ navigation, route }) {
       };
 
       const response = await api.post(
-        `/app/travel/${travel}/change-status`,
+        `/travel/${travel}/change-status`,
         objSend,
         { headers: { Authorization: `bearer ${token}` } }
       );
@@ -254,7 +254,7 @@ export default function Locals({ navigation, route }) {
                             data.status != "PENDENTE" &&
                             data.status != "EM ANDAMENTO"
                           }
-                          onPress={() => saveMergedLocal(data.merged, data.id)}
+                          onPress={() => saveMergedLocal(data.merge?.split(',') ?? [data.id], data.id)}
                         >
                           <View style={styles.item}>
                             {data.status != "PENDENTE" &&

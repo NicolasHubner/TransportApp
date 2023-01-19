@@ -12,6 +12,7 @@ import { Button } from "react-native-paper";
 import { api } from "../../services/api";
 import styles from "./styles";
 import crashlytics from '@react-native-firebase/crashlytics';
+import { TravelController } from "../../controllers/TravelController";
 
 export default function LocalDetails({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -43,29 +44,18 @@ export default function LocalDetails({ navigation, route }) {
         }
       });
       setLocal(id);
-      const response = await api.get(`/app/travel/local/${id}/details`, {
-        headers: { Authorization: `bearer ${token}` },
-      });
+      const response = await TravelController.getLocalNavigation(token, id);
+      console.log(response);
       if (response) {
-        // console.log(
-        //   "aqui nos detalhes",
-        //   response.data.data.location_type_description
-        // );
-        setLocationType(response.data.data.location_type_description);
-        if (response.data.data.location_type_description === "DESTINO") {
-          const responseDestine = await api.get(
-            `/app/travel/${response.data.data.travel_id}/checkLocals`,
-            {
-              params: { typeCheck: "checkDestiny" },
-              headers: { Authorization: `bearer ${token}` },
-            }
-          );
-          console.log(responseDestine.data);
-          if (responseDestine.data.success === "true") {
+        setLocationType(response.data.location_type_description);
+        if (response.data.location_type_description === "DESTINO") {
+          const responseDestine = await TravelController.checkLocalsPendent(response.data.travel_id);
+          console.log(responseDestine);
+          if (responseDestine) {
             setGoToDestine(true);
           }
         }
-        setData(response.data.data);
+        setData(response.data);
       }
     } catch (error) {
       crashlytics().recordError(error);
@@ -105,7 +95,7 @@ export default function LocalDetails({ navigation, route }) {
             uuid_group: true
           };
           const response = await api.post(
-            `/app/travel/local/${data.id}/change-status`,
+            `/local/${data.id}/change-status`,
             status,
             { headers: { Authorization: `bearer ${token}` } }
           );
@@ -129,7 +119,7 @@ export default function LocalDetails({ navigation, route }) {
           uuid_group: true
         };
         const response = await api.post(
-          `/app/travel/local/${data.id}/change-status`,
+          `/local/${data.id}/change-status`,
           status,
           { headers: { Authorization: `bearer ${token}` } }
         );
@@ -197,7 +187,7 @@ export default function LocalDetails({ navigation, route }) {
                 <View style={styles.status}>
                   <View style={styles.address}>
                     <Text style={[styles.textSansRegular, { fontSize: 18 }]}>
-                      Endereço {data.location_sequence} / {data.total_locals}
+                      Endereço {data.location_sequence} / {data.total_missions}
                     </Text>
                     <Text
                       style={[
@@ -214,7 +204,7 @@ export default function LocalDetails({ navigation, route }) {
                       onPress={() =>
                         navigation.navigate("ContainedMap", {
                           travel_id: data.travel_id,
-                          local_id: local,
+                          local_id: data.id,
                           rote: "LocalDetails",
                         })
                       }

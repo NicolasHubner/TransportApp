@@ -15,7 +15,8 @@ import { Button } from "react-native-paper";
 import { api } from "../../services/api";
 import { format } from "date-fns";
 import styles from "./styles";
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from "@react-native-firebase/crashlytics";
+import { TravelController } from "../../controllers/TravelController";
 
 export default function TripDetails({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -27,7 +28,7 @@ export default function TripDetails({ navigation, route }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingModal, setIsLoadingModal] = useState(false);
   const [lastLocate, setLastLocate] = useState({});
-  const [originType, setOriginType] = useState('');
+  const [originType, setOriginType] = useState("");
 
   // DEFINE O ESTADO DOS MODAIS
   const showModalAtraso = () => setLateVisible(true);
@@ -41,16 +42,13 @@ export default function TripDetails({ navigation, route }) {
   // PEGA AS LOCALIZAÇÕES E TODAS AS INFORMAÇÕES DA VIAGEM
   async function init() {
     try {
-      
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
       const id = await route.params;
-      
+
       setTravelId(id);
       setToken(token);
-      const response = await api.get(`/app/travel/${id}/details`, {
-        headers: { Authorization: `bearer ${token}` },
-      });
-      
+      const response = await TravelController.getTravelsDetails(token, id);
+
       let lastLocation = {};
       lastLocation = await StorageController.buscarPorChave(LAST_LOCATION);
       if (lastLocation) {
@@ -68,10 +66,10 @@ export default function TripDetails({ navigation, route }) {
 
       setLastLocate(lastLocation);
       if (response) {
-        setOriginType(response.data.data.origin_type);
-        setData(response.data.data);
+        setOriginType(response.origin_type);
+        setData(response);
 
-        if (response.data.data.is_late) {
+        if (response.is_late) {
           showModalAtraso();
         }
       }
@@ -87,14 +85,9 @@ export default function TripDetails({ navigation, route }) {
           }
         );
       } else if (error.response.status == "500") {
-        Alert.alert(
-          "Aviso",
-          error.response.data.message,
-          [{ text: "OK" }],
-          {
-            cancelable: false,
-          }
-        );
+        Alert.alert("Aviso", error.response.data.message, [{ text: "OK" }], {
+          cancelable: false,
+        });
         navigation.navigate("Trips");
       } else {
         navigation.navigate("Trips");
@@ -129,8 +122,9 @@ export default function TripDetails({ navigation, route }) {
         longitude: lastLocate.long,
       };
       const response = await api.post(
-        `/app/travel/${travelId}/change-status`,
-        objSend, {headers: { Authorization: `bearer ${token}` }}
+        `/travel/${travelId}/change-status`,
+        objSend,
+        { headers: { Authorization: `bearer ${token}` } }
       );
 
       if (response) {
@@ -155,19 +149,6 @@ export default function TripDetails({ navigation, route }) {
   const goToOrigin = async () => {
     try {
       setIsLoading(true);
-      // let lastLocate = await StorageController.buscarPorChave(LAST_LOCATION);
-      // if (lastLocate) {
-      //   lastLocate = JSON.parse(JSON.parse(lastLocate));
-      // } else {
-      //   const newLocation = await LocationController.buscaLocal();
-      //   if (newLocation) {
-      //     const { latitude, longitude } = newLocation.coords;
-      //     lastLocate = {
-      //       lat: latitude,
-      //       long: longitude,
-      //     };
-      //   }
-      // }
 
       let dist = await LocationController.calculaDistancia(
         lastLocate.lat,
@@ -203,8 +184,9 @@ export default function TripDetails({ navigation, route }) {
         longitude: lastLocate.long,
       };
       const response = await api.post(
-        `/app/travel/${travelId}/change-status`,
-        objSend, {headers: { Authorization: `bearer ${token}` }}
+        `/travel/${travelId}/change-status`,
+        objSend,
+        { headers: { Authorization: `bearer ${token}` } }
       );
       if (response) {
         navigation.navigate("Locals", data.id);
@@ -239,7 +221,7 @@ export default function TripDetails({ navigation, route }) {
     }
   }
 
-  // REDIRECIONA PARA A TELA "CONTACTLOCALS" 
+  // REDIRECIONA PARA A TELA "CONTACTLOCALS"
   async function redirectPage() {
     const dados = {
       travel_id: data.id,
@@ -285,11 +267,9 @@ export default function TripDetails({ navigation, route }) {
                       </Text>
                       <View style={styles.line} />
                       <View>
-                        {/* <Pressable style={{backgroundColor: "#2F2F2F", borderRadius: 15, paddingHorizontal: 10, paddingVertical: 3}}> */}
                         <Text style={[styles.textSansBold, { fontSize: 16 }]}>
                           Local de inicio:
                         </Text>
-                        {/* </Pressable> */}
                       </View>
                     </View>
                     <Image
@@ -302,7 +282,7 @@ export default function TripDetails({ navigation, route }) {
                   {/* <View style={{ flexDirection: "row", marginTop: 10 }}> */}
                   <View style={{ width: "70%" }}>
                     <Text style={[styles.textSansRegular, { fontSize: 16 }]}>
-                      {data.origin}
+                      {data.origin_name}
                     </Text>
                   </View>
                   <View style={{ alignItems: "flex-end" }}>

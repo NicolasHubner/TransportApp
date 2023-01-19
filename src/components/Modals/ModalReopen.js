@@ -4,6 +4,7 @@ import { Button } from "react-native-paper";
 import Loading from "../Loading";
 import { api } from "../../services/api";
 import crashlytics from '@react-native-firebase/crashlytics';
+import { TravelController } from "../../controllers/TravelController";
 
 export default function ModalReopen({
   type,
@@ -24,19 +25,10 @@ export default function ModalReopen({
         setRegress(false);
       }
       if (travelId) {
-        const response = await api.get(
-          `/app/travel/${travelId}/checkLocals`,
-          {
-            params: { typeCheck: "checkPendentLocals" },
-            headers: { Authorization: `bearer ${token}` },
-          }
-        );
-        if (response) {
-          console.log(response.data);
-          if (response.data.success === "false") {
+        const response = await TravelController.checkLocalsPendent(travelId);
+        if (!response) {
             setRegress(false);
-          }
-        }
+Í        }
       }
     } catch (error) {
       crashlytics().recordError(error);

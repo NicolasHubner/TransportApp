@@ -1,20 +1,42 @@
+//*************************************************************************** */
+//  Alterações:
+//  
+//  14.12.22 - Barbara
+//             Criação da função handleButtonClick para redirecionar 
+//             o usuario para as configuracoes e mudança no texto.
+//  15.12.22 - Márcia
+//             Alteração para redirecionar o usuário para a configuração que 
+//             habilita o GPS.
+//
+//*************************************************************************** */
+
 import React, { useState } from "react";
-import { View, Text, Image, StyleSheet } from "react-native";
+import { View, Text, Image, StyleSheet, Linking, Platform } from "react-native";
 import { Button } from "react-native-paper";
+import { startActivityAsync, ActivityAction } from 'expo-intent-launcher';
 
 export default function ModalLocationDisabled({ hideModal }) {
+   
+  // 15.12.22...
+  const handleButtonClick = () => {
+    Platform.OS === 'ios'
+        ? Linking.openSettings()
+        : startActivityAsync(ActivityAction.LOCATION_SOURCE_SETTINGS);
+    hideModal()
+  }
+  //...15.12.22
 
   return (
     <View style={styles.modal}>
       <View style={styles.modalContainer}>
         <View style={{ width: "90%", alignItems: "flex-start" }}>
-          <Text style={styles.textModal}>
-            Para iniciar a viagem, você deverá ativar seu
+        <Text style={styles.textModal}>
+            Para prosseguir você deve ativar a
             <Text style={[styles.textModal, { fontWeight: "bold" }]}>
               {" "}
-              GPS{" "}
+              localização{" "}           {/*EDIÇÃO - mudança de GPS para localização */}
             </Text>
-            <Text>e mante-lo ativo durante a utilização do aplicativo!</Text>
+            <Text> deste celular.</Text>
           </Text>
         </View>
         <View style={styles.containerImage}>
@@ -24,14 +46,16 @@ export default function ModalLocationDisabled({ hideModal }) {
           />
         </View>
         <View style={styles.buttonModal}>
+          {/*EDIÇÃO */}
           <Button
             contentStyle={styles.button}
             mode="contained"
             labelStyle={{ color: "white" }}
-            onPress={hideModal}
+            onPress={handleButtonClick}
           >
-            Retornar a lista de viagens
+            Ativar Localização
           </Button>
+          {/* FIM EDIÇÃO*/}
         </View>
       </View>
     </View>
