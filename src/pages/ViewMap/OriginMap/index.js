@@ -37,6 +37,7 @@ import {api} from "../../../services/api";
 import { format } from "date-fns";
 import styles from "./styles";
 import crashlytics from '@react-native-firebase/crashlytics';
+import { TravelController } from "../../../controllers/TravelController";
 
 // COMPONENTE DO MAPA DO LOCAL DE ORIGEM
 export default function ExpandedMap({ navigation, route }) {
@@ -126,12 +127,11 @@ export default function ExpandedMap({ navigation, route }) {
       // }
 
       // FAZ A REQUISIÇÃO PARA PEGAR OS DADOS DO LOCAL DE ORIGEM
-      const response = await api.get(
-        `/app/travel/local/${idLocal}/navigation`, {headers: { Authorization: `bearer ${tokenKey}` }}
-      );
+      const response = await TravelController.getLocalNavigation(tokenKey, idLocal);
+
       if (response) {
-        setTravel(response.data.data.travel_id);
-        setHasMission(response.data.has_mission);
+        setTravel(response.data.travel_id);
+        setHasMission(response.has_mission);
         // if (map && map === "waze") {
         //   Linking.openURL(response.data.data.wazer);
         // } else if (map && map === "android") {
@@ -141,14 +141,14 @@ export default function ExpandedMap({ navigation, route }) {
         // }
         if (destineLocation.latitude === 0) {
           const location = {
-            latitude: JSON.parse(response.data.data.lat),
-            longitude: JSON.parse(response.data.data.long),
+            latitude: JSON.parse(response.data.location_latitud),
+            longitude: JSON.parse(response.data.location_longitud),
             latitudeDelta: 0.02,
             longitudeDelta: 0.02,
           };
           setDestineLocation(location);
         }
-        setData(response.data.data);
+        setData(response.data);
       }
     } catch (error) {
       crashlytics().recordError(error);
@@ -198,34 +198,23 @@ export default function ExpandedMap({ navigation, route }) {
             travel_id: travel,
             local_id: local,
             event_id: 5,
-            event_latitude: newLocation.latitude,
-            event_longitude: newLocation.longitude,
+            event_latitude: `${newLocation.latitude}`,
+            event_longitude: `${newLocation.longitude}`,
             event_at: format(new Date(), "yyyy-MM-dd HH:mm:ss.SSS"),
-            // metadata: {
-            //   address: endereco,
-            // },
           };
-          //INCLUIR VERIFICAÇÃO DE MISSÔES PARA O LOCAL
-          // if (hasMission) {
-          //   const responseEvent = await api.post(
-          //     `/app/travel/${travel}/events`, event, {headers: { Authorization: `bearer ${token}` }}
-          //   );
-          //   if (responseEvent) {
-          //     console.log("evento", responseEvent.data);
-          //     setNewLocalVisible(true);
-          //   }
-          // } else {
+
+          console.log("event2", event);
 
           // FAZ A REQUISIÇÃO DE MUDAR O STATUS DA VIAGEM PARA CONCLUIDO 
           const response = await api.post(
-            `/app/travel/local/${local}/change-status`,
+            `/local/${local}/change-status`,
             { status: "CONCLUIDO", uuid_group: true }, {headers: { Authorization: `bearer ${token}` }}
           );
           if (response) {
             //FAZ A REQUISIÇÃO DE ADD O EVENTO DE CHEGADA AO LOCAL DE ORIGEM
             const responseEvent = await api.post(
-              `/app/travel/${travel}/events`,
-              event, {headers: { Authorization: `bearer ${token}` }}
+              `/travel/event/${travel}`,
+              event, {headers: { authorization: `bearer ${token}` }}
             );
             if (responseEvent) {
               // MOSTRA O AVISO DE CHEGADA AO LOCAL PARA O USUÁRIO

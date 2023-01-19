@@ -1,3 +1,13 @@
+//*************************************************************************** */
+// Aplicativo TROUW Tecnologia
+// 
+// Alterações
+//
+//  23.12.22 - TIAKI
+//      - alteração da url da api de validacao do token da senha
+//
+//*************************************************************************** */
+
 import React, { useState, useEffect } from "react";
 import {
   ScrollView,
@@ -86,7 +96,7 @@ export default function CodeRecover({ navigation }) {
 
       const code = { password_token: validCode.value };
 
-      const res = await api.post("/app/validate-password-token", code);
+      const res = await api.post("/user/validate-password-token", code); //  23.12.22
       if (res.data.success) {
         console.log(res.data.data.password_token[0]);
         navigation.navigate("ResetPassword", res.data.data.password_token[0]);

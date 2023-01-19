@@ -1,3 +1,9 @@
+// Alterações:
+//
+//   Tiaki - 23.12.2022
+//         - adição de parametros (accuracy, altitude, altitudeAccuracy, direction)
+//
+
 import * as Location from "expo-location";
 import {
   LAST_LOCATION,
@@ -14,13 +20,14 @@ import { api } from "../services/api";
 import { LocationDao } from "../daos/LocationDao";
 import crashlytics from '@react-native-firebase/crashlytics';
 
+import axios from "axios";
+
 function LocationController() {
-  const saveLocationsTask = async (lat, long, speed) => {
+  const saveLocationsTask = async (lat, long, speed, accuracy, altitude, altitudeAccuracy, direction) => { //adicao de parametros
     try {
-      
       const lastLocation = await saveLastLocation(lat, long);
-      const arrayLocation = await saveArrayLocations(lat, long, speed);
-      
+      const arrayLocation = await saveArrayLocations(lat, long, speed, accuracy, altitude, altitudeAccuracy, direction); //adicao de parametros
+
       if (lastLocation && arrayLocation) {
         await StorageController.salvarPorChave(GPS_STATUS, "SUCESSO");
         return { code: "SUCESSO", success: true };
@@ -54,14 +61,15 @@ function LocationController() {
   };
 
   // SALVA A LOCALIZAÇÃO MAIS DETALHADA DO USUARIO
-  const saveArrayLocations = async (lat, long, speed) => {
+  const saveArrayLocations = async (lat, long, speed, accuracy, altitude, altitudeAccuracy, direction) => { //adicao de parametros
     try {
       const date = format(new Date(), "yyyy-MM-dd HH:mm:ss");
       let battery = await Battery.getBatteryLevelAsync();
-      battery = Math.round(battery*100);
+      battery = Math.round(battery * 100);
 
-      await LocationDao.save(lat, long, Math.round(speed), battery, 1, "GPRS", "first_plane", date);
-      
+      //adicao de parametros
+      await LocationDao.save(lat, long, Math.round(speed), battery, 1, "GPRS", "first_plane", date, accuracy, altitude, altitudeAccuracy, direction);
+
       return true;
     } catch (error) {
       crashlytics().recordError(error);
@@ -70,6 +78,7 @@ function LocationController() {
     }
   };
 
+  //23.12.2022...
   // ENVIA A LOCALIZAÇÃO PARA A API
   const sendLocationsTask = async () => {
     try {
@@ -80,36 +89,44 @@ function LocationController() {
       let travelId = await StorageController.buscarPorChave(TRAVEL_ID);
       let userId = await StorageController.buscarPorChave(USER_ID);
 
-      
       let dataEnv = false;
+
       if (arrayLocations.length > 0) {
-        console.log("enviou locations");
+
+        dataEnv = []
         let dateSend = format(new Date(), "yyyy-MM-dd HH:mm:ss");
 
-        dataEnv = {
-          user_id: userId,
-          localizations: arrayLocations,
-          mac_address: "99-99-99-99-99-99",
-          datetime_sent: dateSend,
-          battery_status: 0,
-          gps_status: true,
-          network_status: "GPRS",
-          app_status: "first_plane",
-          speed: 0,
-        };
-
-        if (travelId) {
-          dataEnv = { ...dataEnv, travel_id: travelId };
-          if (localId) {
-            dataEnv = { ...dataEnv, travel_local_id: localId };
-          }
+        for (let i = 0; i < arrayLocations.length; i++) {
+          dataEnv.push({
+            // user_id: userId,
+            datetimeSent: dateSend,
+            datetimeLoc: arrayLocations[i].date,
+            lat: arrayLocations[i].lat,
+            lng: arrayLocations[i].lng,
+            accuracy: arrayLocations[i].accuracy,
+            altitude: arrayLocations[i].altitude,
+            altitudeAccuracy: arrayLocations[i].altitudeAccuracy,
+            direction: arrayLocations[i].direction,
+            speed: arrayLocations[i].speed,
+            appStatus: arrayLocations[i].appStatus,
+            gpsStatus: arrayLocations[i].gpsStatus,
+            imei: "99-99-99-99-99-99",
+            batteryStatus: arrayLocations[i].batteryStatus,
+            networkStatus: arrayLocations[i].networkStatus,
+          });
         }
       }
 
+      const positions = { positions: dataEnv }
+
       if (dataEnv && token) {
-        const response = await api.post(`/app/travel/local/location`, dataEnv, {
+
+        const response = await api.post(`/positions`, positions, {
           headers: { Authorization: `bearer ${token}` },
         });
+
+        console.log("enviou positions!");
+
         if (response) {
           await LocationDao.deleteList(arrayLocations);
           return { code: "SUCESSO", success: true };
@@ -128,6 +145,7 @@ function LocationController() {
       }
     }
   };
+  //...23.12.2022
 
   const buscaLocal = async () => {
     let location = null;
@@ -172,7 +190,7 @@ function LocationController() {
     } catch (error) {
       crashlytics().recordError(error);
       console.log(error.message);
-    } 
+    }
     return endereco;
   };
 
@@ -224,7 +242,7 @@ function LocationController() {
       Math.asin(
         Math.sqrt(
           Math.pow(Math.sin(latD / 2), 2) +
-            Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(lonD / 2), 2)
+          Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(lonD / 2), 2)
         )
       );
 

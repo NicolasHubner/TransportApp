@@ -1,31 +1,50 @@
+//*************************************************************************** */
+// Aplicativo TROUW Tecnologia
+// 
+//  Alterações:
+//  
+//  14.12.22 - Barbara
+//             Criação da função handleButtonClick para redirecionar 
+//             o usuario para as configuracoes e mudança no texto e no botão
+//
+//  15.12.22 - Márcia
+//             Alteração para redirecionar o usuário para a configuração da 
+//             localização. 
+//
+//*************************************************************************** */
 import React, { useState } from "react";
-import { View, Text, Image, StyleSheet } from "react-native";
+import { View, Text, Image, StyleSheet, Linking, Platform } from "react-native";
 import { Button } from "react-native-paper";
+import { startActivityAsync, ActivityAction, Settings } from 'expo-intent-launcher';
 
 export default function ModalLocationRefused({ hideModal }) {
+
+  //edicao
+  const handleButtonClick = () => {
+    // 15.12.22...
+    Platform.OS === 'ios'
+        ? Linking.openSettings()
+        : startActivityAsync(ActivityAction.APPLICATION_DETAILS_SETTINGS, {
+          data: 'package:' + "dev.com.trouw.mobile",
+        });
+    //...15.12.22
+    hideModal()
+  }
+
+ 
+  //fim
 
   return (
     <View style={styles.modal}>
       <View style={styles.modalContainer}>
         <View style={{ width: "90%", alignItems: "flex-start" }}>
           <Text style={styles.textModal}>
-            Para iniciar a viagem, você deverá ativar a 
+            Para prosseguir, nas configurações deste aplicativo você deve permitir o acesso à sua localização através das opções:
+            <Text>{"\n"}</Text>
             <Text style={[styles.textModal, { fontWeight: "bold" }]}>
-              {" "}
-              permissão{" "}
+              {""}
+              Permissões -> Local -> "Permitir o tempo todo"{" "}
             </Text>
-            <Text>de utilização da sua</Text>
-            <Text style={[styles.textModal, { fontWeight: "bold" }]}>
-              {" "}
-              localização{" "}
-            </Text>
-            <Text>nas configurações do aplicativo!</Text>
-            <Text>{"\n"} Selecione a opção</Text>
-            <Text style={[styles.textModal, { fontWeight: "bold" }]}>
-              {" "}
-              "Permitir o tempo todo"{" "}
-            </Text>
-            <Text>nas configurações do aplicativo!</Text>
           </Text>
         </View>
         <View style={styles.containerImage}>
@@ -35,14 +54,16 @@ export default function ModalLocationRefused({ hideModal }) {
           />
         </View>
         <View style={styles.buttonModal}>
+          {/*EDIÇÃO*/}
           <Button
             contentStyle={styles.button}
             mode="contained"
             labelStyle={{ color: "white" }}
-            onPress={hideModal}
+            onPress={handleButtonClick}
           >
-            Revisar configurações
+            Permitir Acesso
           </Button>
+          {/* FIM EDIÇÃO*/}
         </View>
       </View>
     </View>
@@ -72,7 +93,7 @@ const styles = StyleSheet.create({
   },
 
   textModal: {
-    fontSize: 22,
+    fontSize: 20,
   },
 
   image: {

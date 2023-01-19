@@ -1,3 +1,8 @@
+//Alterações
+//
+//  TIAKI - 08.12.2022
+//        - modificação e adição de estilos nos inputs
+
 import { StyleSheet } from "react-native";
 import { windowHeight } from "../../utils/metrics";
 
@@ -63,12 +68,28 @@ export default StyleSheet.create({
     // backgroundColor: 'yellow'
   },
 
-  input: {
-    height: 48,
-    padding: 10,
+  //adicao/alteracao
+  inputArea: {
+    flexDirection: "row",
     backgroundColor: 'rgba(224, 224, 224, 0.7)',
-    borderRadius: 5
+    borderRadius: 5,
+    height: 48,
+    alignItems: "center"
   },
+
+  input: {
+    padding: 10,
+    height: 48,
+    width:"85%"
+  },
+
+  icon: {
+    padding: 10,
+    justifyContent:"center",
+    alignContent:"center",
+    width:"15%"
+  },
+  //fim
 
   checkboxView: {
     marginTop: 15,

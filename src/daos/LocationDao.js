@@ -1,12 +1,18 @@
-import { getRealmContext } from "../contexts/RealmContext";
+// Alterações:
+//
+//   Tiaki - 20.12.2022
+//         - adição de parametros (accuracy, altitude, altitudeAccuracy, direction)
 
-export class LocationDao {
-    static #tableName = "Locations";
-    
-    static async save(lat,lng, speed, batteryStatus, gpsStatus, networkStatus, appStatus, date){
-        const realmContext = await getRealmContext();
+import { LocationsSchema } from "../schemas/LocationSchema";
+import { Dao } from "./Dao";
+
+export class LocationDao extends Dao {
+    static tableName = LocationsSchema.name;
+
+    static async save(lat, lng, speed, batteryStatus, gpsStatus, networkStatus, appStatus, date, accuracy, altitude, altitudeAccuracy, direction) {
+        const realmContext = await this.getContext();
         realmContext.write(() => {
-            realmContext.create(this.#tableName, {
+            realmContext.create(this.tableName, {
                 lat: lat,
                 lng: lng,
                 speed: speed,
@@ -14,23 +20,15 @@ export class LocationDao {
                 gpsStatus: gpsStatus,
                 networkStatus: networkStatus,
                 appStatus: appStatus,
-                date: date
+                date: date,
+                accuracy: accuracy,
+                altitude: altitude,
+                altitudeAccuracy: altitudeAccuracy,
+                direction:direction
             })
         });
-        
+
         realmContext.close();
     }
 
-    static async getTop(top) {
-        const realmContext = await getRealmContext();
-        return realmContext.objects(this.#tableName).slice(0,top);
-    }
-
-    static async deleteList(list) {
-        const realmContext = await getRealmContext();
-        realmContext.write(() => {
-            realmContext.delete(list);
-        });
-        realmContext.close();
-    }
 }

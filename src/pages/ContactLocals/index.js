@@ -40,7 +40,7 @@ export default function ContactLocals({ navigation, route }) {
       setRote(params.rote);
 
       const response = await api.get(
-        `/app/travel/${params.travel_id}/locals/not-confirmed`,
+        `/travel/locals/${params.travel_id}/not-confirmed`,
         { headers: { Authorization: `bearer ${token}` } }
       );
       if (response) {

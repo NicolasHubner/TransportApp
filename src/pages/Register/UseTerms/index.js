@@ -1,3 +1,13 @@
+//*************************************************************************** */
+// Aplicativo TROUW Tecnologia
+// 
+// Alterações
+//
+//  23.12.22 - TIAKI
+//      - correção dos termos de uso
+//
+//*************************************************************************** */
+
 import React, { useState, useEffect, useContext, useRef } from "react";
 import { View, Image, Alert, ImageBackground, Pressable } from "react-native";
 import StorageController from "../../../controllers/StorageController";
@@ -21,18 +31,23 @@ export default function UseTerms({ navigation }) {
 
   // FUNÇÃO INICIAL PARA PEGAR TODAS AS INFORMAÇÕES PARA A RENDERIZAÇÃO DA TELA
   // PEGA OS DADOS DO REGISTRO E VERIFICA SE OS TERMOS DE USO FORAM ACEITOS
+  
   async function init() {
     try {
+      const response = await api.get("/terms-of-use");
+      //23.12.2022...
+      if (response.data.success === true) {
+        setTerm(response.data.data.terms_of_use);
+      }
+      //...23.12.2022
+      
       let dadosRegistro = await StorageController.buscarPorChave(REGISTER);
       dadosRegistro = JSON.parse(dadosRegistro);
       setRegister(dadosRegistro);
       if (dadosRegistro.terms_of_use === "true") {
         setChecked(true);
       }
-      const response = await api.get("/app/terms-of-use");
-      if (response.data.success === "true") {
-        setTerm(response.data.data.terms_of_use);
-      }
+
     } catch (error) {
       crashlytics().recordError(error);
       if (error.response) {
@@ -91,7 +106,7 @@ export default function UseTerms({ navigation }) {
               </View>
               <View style={styles.modal}>
                 <View style={styles.modalMargin}>
-                  <View style={{ height: "5%" }}>
+                  <View style={{ height: "8%" }}>
                     <Text style={styles.title}>Termos de uso</Text>
                   </View>
                   <View style={{ height: "95%" }}>

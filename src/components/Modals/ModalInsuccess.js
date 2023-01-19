@@ -1,3 +1,10 @@
+//Alterações
+//
+//  TIAKI - 06.12.2022
+//        - alteração da função pickImage
+//        - implementação da CameraController
+//
+
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, StyleSheet, Alert } from "react-native";
 import StorageController from "../../controllers/StorageController";
@@ -5,13 +12,15 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import RNPickerSelect from "react-native-picker-select";
 import { TOKEN_KEY, LAST_LOCATION } from "../../constants/constants";
 import * as ImageManipulator from "expo-image-manipulator";
-// import apiFormData from "../../services/apiFormData";
 import * as ImagePicker from "expo-image-picker";
 import { Button } from "react-native-paper";
 import colors from "../../utils/colors";
-import { api, apiFormData } from "../../services/api";
+import { api } from "../../services/api";
 import { format } from "date-fns";
 import crashlytics from '@react-native-firebase/crashlytics';
+import CameraController from "../../controllers/CameraController";
+import { TravelController } from "../../controllers/TravelController";
+import reactotron from "reactotron-react-native";
 
 export default function ModalInsuccess({ func, func2, missionId }) {
   const [motivo, setMotivo] = useState("0");
@@ -33,22 +42,22 @@ export default function ModalInsuccess({ func, func2, missionId }) {
     try {
       const tokenKey = await StorageController.buscarPorChave(TOKEN_KEY);
       setToken(tokenKey);
-      const response = await api.get(`/app/failure/reasons`, {
-        params: { type: 1 },
-        headers: { Authorization: `bearer ${tokenKey}` },
-      });
-
-      if (response.data) {
-        const motivos = response.data;
-        motivos.unshift({
+      const response = await TravelController.getInsuccessType(tokenKey, 1);
+      
+      if (response.length > 0) {
+        let motivos = [];
+        motivos.push({
           label: "Selecione um motivo:",
           value: 0,
         });
+        motivos = motivos.concat(response);
+
+        reactotron.log(response, motivos);
         setArrayMotivos(motivos);
       }
     } catch (error) {
       crashlytics().recordError(error);
-      console.log("Error",error);
+      console.log("Error", error);
     }
   };
 
@@ -75,102 +84,88 @@ export default function ModalInsuccess({ func, func2, missionId }) {
     // setVisible(false);
   };
 
-  //GUARDA A IMAGEM
+  //EDIÇÃO TIAKI 06.12.2022 - antigo pickImage - PERMISSAO DE CAMERA E MANIPULACAO DE FOTO
   const pickImage = async () => {
     try {
 
-      let camera = await ImagePicker.getCameraPermissionsAsync();
-      let media = await ImagePicker.getMediaLibraryPermissionsAsync();
+      const permissao = await CameraController.verificaPermissoes()
+      console.log("camera")
 
-      if (camera.granted && media.granted) {
-        let result = await ImagePicker.launchCameraAsync({
+      //se a permissao foi concedida e o usuario tirou uma foto, ocorre a manipulacao da foto
+      if (permissao) {
+
+        let foto = await ImagePicker.launchCameraAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsEditing: true,
+          quality: 0.5,
+          base64: true,
         });
 
-        if (result.uri) {
-          const dataCompressed = await ImageManipulator.manipulateAsync(
-            result.uri,
-            [{ resize: { width: 600 } }],
-            { compress: 0.8 }
-          );
-          // const visionResp = await RNTextDetector.detectFromUri(result.uri);
-          // console.log(visionResp);
-          setImageInsuccess(dataCompressed.uri);
-        }
-      } else {
-        await ImagePicker.requestCameraPermissionsAsync();
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const dataCompressed = await ImageManipulator.manipulateAsync(
+          foto.uri,
+          [{ resize: { width: 600 } }],
+          { compress: 0.8 }
+        );
+
+        setImageInsuccess(dataCompressed.uri);
       }
     } catch (error) {
       crashlytics().recordError(error);
-      console.log("ModalInsucess",error.message);
+      console.log("ModalInsucess", error.message);
     }
   };
+  //FIM EDICAO 06.12.2022
 
   // ENVIA O INSUCESSO PARA A API
   const sendInsuccess = async () => {
     try {
       setLoading(true);
-      // let data = new FormData();
-
-      // if (imageInsuccess) {
-      //   data.append("data[0][img]", {
-      //     uri: imageInsuccess,
-      //     name: 'img',
-      //     type: "image/jpg",
-      //   });
-      // }
-      // data.append('data[0][failure_reason_id]', motivo);
-      // if (observation) {
-      //   data.append('data[0][failure_reason]', observation);
-      // }
-      // data.append('data[0][image_type]', 'insucesso');
-
-      // const response = await apiFormData.post(
-      //   `/app/travel/mission/${missionId}/confirm-failed`,
-      //   data, {headers: { Authorization: `bearer ${token}` }}
-      // );
 
       let lastLocation = await StorageController.buscarPorChave(LAST_LOCATION);
+      console.log("last",lastLocation);
       if (lastLocation) {
         lastLocation = JSON.parse(JSON.parse(lastLocation));
       }
 
-      let data = new FormData();
+      console.log("last",lastLocation);
 
-      data.append(`data[0][status]`, "failed");
-      data.append(`data[0][haveImg]`, imageInsuccess ? "true" : "false");
-      data.append(`data[0][lat]`, lastLocation?.lat);
-      data.append(`data[0][long]`, lastLocation?.long);
-      data.append(
-        `data[0][event_at]`,
-        format(new Date(), "yyyy-MM-dd HH:mm:ss")
-      );
+      let data = {data:[]};
+      let objData = {
+        status: "failed",
+        haveImg: imageInsuccess ? "true" : "false",
+        lat: lastLocation?.lat || null,
+        long: lastLocation?.long || null,
+        event_at:  format(new Date(), "yyyy-MM-dd HH:mm:ss"),
+        img: [],
+        failure_reason_id: motivo,
+        failure_reason: observation,
+        image_type: "insucesso"
+      }
 
       if (imageInsuccess) {
-        data.append(`data[0][img]`, {
-          uri: imageInsuccess,
+        const imageData = await ImageManipulator.manipulateAsync(imageInsuccess, [], {base64: true});
+        objData.img.push({
+          uri: imageData.base64 || null,
           name: "img",
           type: "image/jpg",
-        });
+        })
       }
-      data.append("data[0][failure_reason_id]", motivo);
-      data.append("data[0][failure_reason]", observation);
-      data.append(`data[0][image_type]`, "insucesso");
 
-      const response = await apiFormData.post(
-        `/app/travel/local/${missionId}/changeMission`,
+      data.data.push(objData);
+      console.log("request", JSON.stringify(data));
+      const response = await api.post(
+        `/mission/${missionId}/change-status`,
         data,
         { headers: { Authorization: `bearer ${token}` } }
       );
-
+      console.log(response.data);
       if (response.data.success) {
         func();
         func2(missionId, token);
       }
     } catch (error) {
       crashlytics().recordError(error);
+      console.log("erro documento", JSON.stringify(error));
       if (error.response) {
         console.log("Erro ao inserir insucesso", error.response.data);
         Alert.alert("Atenção", error.response.data.errors[0], [{ text: "OK" }], {
@@ -187,7 +182,7 @@ export default function ModalInsuccess({ func, func2, missionId }) {
             }
           );
         } else {
-          console.log("Error",error);
+          console.log("Error", error);
           Alert.alert("Atenção", error.message, [{ text: "OK" }], {
             cancelable: false,
           });

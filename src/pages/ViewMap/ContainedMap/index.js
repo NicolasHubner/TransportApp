@@ -15,6 +15,8 @@ import { api } from "../../../services/api";
 import styles from "./styles";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import crashlytics from '@react-native-firebase/crashlytics';
+import { TravelController } from "../../../controllers/TravelController";
+import reactotron from "reactotron-react-native";
 
 export default function ContainedMap({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -75,40 +77,36 @@ export default function ContainedMap({ navigation, route }) {
 
       // PEGA OS DETALHES DA VIAGEM OU DO LOCAL DE DESTINO
       if (params.rote === "TripDetails") {
-        responseTrip = await api.get(
-          `/app/travel/local/${params.travel_id}/navigation/all`,
-          { headers: { Authorization: `bearer ${tokenKey}` } }
-        );
+        responseTrip = await TravelController.getTravelNavigation(tokenKey, params.travel_id)
       } else {
-        responseLocal = await api.get(
-          `/app/travel/local/${params.local_id}/navigation`,
-          { headers: { Authorization: `bearer ${tokenKey}` } }
-        );
+        responseLocal = await TravelController.getLocalNavigation(tokenKey, params.local_id);
       }
-
+      
+      reactotron.log("responseLocal", responseLocal);
       //DEFINE O LOCAL DE DESTINO E O LOCAL ATUAL DO USUARIO E FAZ A ROTA ENTRE OS DOIS
       let arrayCoords = [];
       // SE A TELA ANTERIOR FOI A 'TRIPDETAILS'
       if (responseTrip) {
         let data = {
-          travel_id: responseTrip.data.travel.id,
-          totalCollect: responseTrip.data.totalCollect,
-          totalDelivery: responseTrip.data.totalDelivery,
-          totalEstimatedTime: responseTrip.data.totalEstimatedTime,
-          origin_name: responseTrip.data.travel.origin_name,
-          qty_local: responseTrip.data.travel.qty_local,
-          start_schedule: responseTrip.data.travel.start_schedule,
-          exit_schedule: responseTrip.data.travel.exit_schedule,
-          finish_schedule: responseTrip.data.travel.finish_schedule,
-          status: responseTrip.data.travel.status.toLowerCase(),
+          travel_id: responseTrip.travel.id,
+          totalCollect: responseTrip.totalCollect,
+          totalDelivery: responseTrip.totalDelivery,
+          totalEstimatedTime: responseTrip.totalEstimatedTime,
+          origin_name: responseTrip.travel.origin_name,
+          qty_local: responseTrip.travel.qty_local,
+          start_schedule: responseTrip.travel.start_schedule,
+          exit_schedule: responseTrip.travel.exit_schedule,
+          finish_schedule: responseTrip.travel.finish_schedule,
+          status: responseTrip.travel.status.toLowerCase(),
         };
+        
         setData(data);
 
-        arrayCoords = responseTrip.data.travelsLocal;
+        arrayCoords = responseTrip.travelsLocal;
         let lastLocationTrip = arrayCoords.slice(-1)[0];
         setDestineLocation({
-          latitude: JSON.parse(lastLocationTrip.lat),
-          longitude: JSON.parse(lastLocationTrip.long),
+          latitude: JSON.parse(lastLocationTrip.location_latitud),
+          longitude: JSON.parse(lastLocationTrip.location_longitud),
           latitudeDelta: 0.02,
           longitudeDelta: 0.02,
         });
@@ -117,15 +115,15 @@ export default function ContainedMap({ navigation, route }) {
         arrayCoords.map((value, index) => {
           if (index == 0) {
             setInitialLocation({
-              latitude: JSON.parse(value.lat),
-              longitude: JSON.parse(value.long),
+              latitude: JSON.parse(value.location_latitud),
+              longitude: JSON.parse(value.location_longitud),
               latitudeDelta: 0.02,
               longitudeDelta: 0.02,
             });
           }
           let obj = {
-            latitude: JSON.parse(value.lat),
-            longitude: JSON.parse(value.long),
+            latitude: JSON.parse(value.location_latitud),
+            longitude: JSON.parse(value.location_longitud),
           };
           markers.push(obj);
         });
@@ -134,27 +132,26 @@ export default function ContainedMap({ navigation, route }) {
       } else if (responseLocal) {
         // SE A TELA ANTERIOR FOI A "LOCALDETAILS"
         let data = {
-          travel_id: responseLocal.data.data.travel_id,
-          totalCollect: responseLocal.data.data.collect,
-          totalDelivery: responseLocal.data.data.delivery,
-          totalEstimatedTime: responseLocal.data.data.estimated_time,
-          origin_name: responseLocal.data.data.address,
-          qty_local: responseLocal.data.data.total,
-          start_schedule: responseLocal.data.data.start,
-          exit_schedule: responseLocal.data.data.end,
-          finish_schedule: responseLocal.data.data.end,
-          status: responseLocal.data.data.status.toLowerCase(),
+          travel_id: responseLocal.data.travel_id,
+          totalCollect: responseLocal.data.qty_collect,
+          totalDelivery: responseLocal.data.qty_delivery,
+          totalEstimatedTime: responseLocal.data.estimated_time,
+          origin_name: responseLocal.data.address,
+          qty_local: responseLocal.data.total_missions,
+          start_schedule: responseLocal.data.start,
+          exit_schedule: responseLocal.data.end,
+          finish_schedule: responseLocal.data.end,
+          status: responseLocal.data.status.toLowerCase(),
         };
         setData(data);
-
         let markers = [
           {
             latitude: lastLocation?.lat,
             longitude: lastLocation?.long,
           },
           {
-            latitude: JSON.parse(responseLocal.data.data.lat),
-            longitude: JSON.parse(responseLocal.data.data.long),
+            latitude: JSON.parse(responseLocal.data.location_latitud),
+            longitude: JSON.parse(responseLocal.data.location_longitud),
           },
         ];
 
@@ -165,8 +162,8 @@ export default function ContainedMap({ navigation, route }) {
           longitudeDelta: 0.02,
         });
         setDestineLocation({
-          latitude: responseLocal.data.data.lat,
-          longitude: responseLocal.data.data.long,
+          latitude: responseLocal.data.location_latitud,
+          longitude: responseLocal.data.location_longitud,
           latitudeDelta: 0.02,
           longitudeDelta: 0.02,
         });
@@ -176,6 +173,7 @@ export default function ContainedMap({ navigation, route }) {
       }
     } catch (error) {
       crashlytics().recordError(error);
+      console.log("aaa", error);
       // TRATAMENTO DE ERROS
       if (error.response) {
         Alert.alert("Aviso", error.response.data.message, [{ text: "OK" }], {
@@ -335,7 +333,7 @@ export default function ContainedMap({ navigation, route }) {
             >
               {markers.length > 0 &&
                 markers.map((marker, index) => (
-                  <Marker coordinate={marker}>
+                  <Marker coordinate={marker} key={index}>
                     <Image
                       style={styles.mapMarker}
                       source={require("../image/marker.png")}

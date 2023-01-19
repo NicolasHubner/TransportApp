@@ -18,6 +18,8 @@ export default function Splash({setIsLoading = () => {}, opening}) {
     
     //ENVIA OS DADOS DA LOCALIZAÇÃO A CADA 30S
     if (permission) {
+      console.log("Splash vai iniciar pedido e envio posições...");
+  
       BackgroundTaskController.startLocationTracking();
       BackgroundTaskController.startLocationSending();
       setInterval(async () => {

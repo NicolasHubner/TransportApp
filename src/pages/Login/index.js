@@ -1,3 +1,17 @@
+//*************************************************************************** */
+// Aplicativo TROUW Tecnologia
+// 
+// Alterações:
+//
+//  08.12.22 - TIAKI 
+//        - olho magico no input senha
+//        - modificação e adição de estilos nos inputs
+//
+//  22.12.22 - TIAKI
+//        - alteração na função do onpress do botao de voltar
+//
+//*************************************************************************** */
+
 import React, { useRef, useEffect, useContext, useState } from "react";
 import {
   View,
@@ -11,12 +25,13 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Pressable,
+  TouchableOpacity,
 } from "react-native";
 import Checkbox from "expo-checkbox";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import StorageController from "../../controllers/StorageController";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { ScrollView } from "react-native-gesture-handler";
 import { Button, HelperText, Snackbar } from "react-native-paper";
 import fundo from "../../assets/images/background.png";
@@ -45,6 +60,10 @@ export default function Login({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState();
   const [erro, setErro] = useState([]);
+
+  //adicao
+  const [hidePass, setHidePass] = useState(true)
+  //fim
 
   const { signIn } = useContext(AuthContext);
   const ref_password = useRef();
@@ -162,8 +181,9 @@ export default function Login({ navigation }) {
       const dadosAcesso = { email, password, ignore_expiration };
       await schema.validate(dadosAcesso, { abortEarly: false });
 
-      const res = await api.post("/app/login", dadosAcesso);
-      if (res.data.success === "true") {
+      const res = await api.post("/login", dadosAcesso);
+      if (res.data.success) {
+        console.log(res.data.data.access_token);
         const token = res.data.data.access_token;
         const user = res.data.data.user;
         await signIn(token, user, checked);
@@ -227,7 +247,10 @@ export default function Login({ navigation }) {
                 <View style={styles.header}>
                   <View style={styles.goBack}>
                     <MaterialCommunityIcons
-                      onPress={() => navigation.navigate("Begin")}
+                      onPress={() => navigation.navigate({
+                        name: 'Begin',
+                        params: { back: true },
+                      })}
                       name="arrow-left"
                       size={25}
                       color="white"
@@ -252,39 +275,50 @@ export default function Login({ navigation }) {
                     }}
                   >
                     <Text style={styles.text}>E-mail</Text>
-                    <TextInput
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      style={styles.input}
-                      value={email}
-                      disabled={isSubmit}
-                      onChangeText={onChangeEmail}
-                      returnKeyType="next"
-                      onSubmitEditing={() => ref_password.current.focus()}
-                      placeholder="usuario@email.com.br"
-                    />
-                    {errors.email &&
-                      errors.email.map((erro, position) => (
-                        <HelperText type="error" visible={true} key={position}>
-                          {erro}
-                        </HelperText>
-                      ))}
+                    <View style={styles.inputArea}>
+                      <TextInput
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        style={styles.input}
+                        value={email}
+                        disabled={isSubmit}
+                        onChangeText={onChangeEmail}
+                        returnKeyType="next"
+                        onSubmitEditing={() => ref_password.current.focus()}
+                        placeholder="usuario@email.com.br"
+                      />
+                      {errors.email &&
+                        errors.email.map((erro, position) => (
+                          <HelperText type="error" visible={true} key={position}>
+                            {erro}
+                          </HelperText>
+                        ))}
+                    </View>
                     <Text style={[styles.text, { marginTop: 15 }]}>Senha</Text>
-                    <TextInput
-                      secureTextEntry={true}
-                      style={styles.input}
-                      value={password}
-                      disabled={isSubmit}
-                      ref={ref_password}
-                      onChangeText={onChangeSenha}
-                      placeholder="*************"
-                    />
-                    {errors.password &&
-                      errors.password.map((erro, position) => (
-                        <HelperText type="error" visible={true} key={position}>
-                          {erro}
-                        </HelperText>
-                      ))}
+                    <View style={styles.inputArea}>
+                      <TextInput
+                        secureTextEntry={hidePass}
+                        style={styles.input}
+                        value={password}
+                        disabled={isSubmit}
+                        ref={ref_password}
+                        onChangeText={onChangeSenha}
+                        placeholder="*************"
+                      />
+                      <TouchableOpacity style={styles.icon} onPress={() => setHidePass(!hidePass)}>
+                        {hidePass ?
+                          <Ionicons name="eye-off" color="black" size={25} />
+                          :
+                          <Ionicons name="eye" color="black" size={25} />
+                        }
+                      </TouchableOpacity>
+                      {errors.password &&
+                        errors.password.map((erro, position) => (
+                          <HelperText type="error" visible={true} key={position}>
+                            {erro}
+                          </HelperText>
+                        ))}
+                    </ View>
                     <View style={styles.checkboxView}>
                       <Checkbox
                         style={styles.checkbox}

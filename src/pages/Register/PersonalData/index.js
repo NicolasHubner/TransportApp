@@ -1,3 +1,13 @@
+//*************************************************************************** */
+// Aplicativo TROUW Tecnologia
+// 
+// Alterações
+//
+//  23.12.22 - TIAKI
+//      - alteração da url da api de verificação de cpf
+//
+//*************************************************************************** */
+
 import React, { useState, useEffect, useContext, useRef } from "react";
 import {
   ScrollView,
@@ -147,11 +157,11 @@ export default function PersonalData({ navigation }) {
       await schema.validate(dadosPessoais, { abortEarly: false });
       let cpfReplace = cpf.replace(/[\D]+/g, "");
 
-      const response = await api.post(
-        `/app/verificaDocumento/${cpfReplace}/cpf`
-      );
+      //  23.12.22...
+      const response = await api.post(`/check-cpf/${cpfReplace}`);
 
-      if (response && response.data.success === "true") {
+      if (response && response.data.success === true) {
+      //  ...23.12.22
         if (register) {
           dadosPessoais = {
             ...register,

@@ -101,7 +101,7 @@ export default function NewAddress({ navigation, route }) {
         setCoords(coords);
 
         const response = await api.put(
-          `/app/travel/local/${id}/change-location`,
+          `/local/${id}/change-location`,
           coords,
           { headers: { Authorization: `bearer ${tokenKey}` } }
         );
@@ -154,7 +154,7 @@ export default function NewAddress({ navigation, route }) {
         };
 
         const response = await api.put(
-          `/app/travel/local/${id}/change-location`,
+          `/local/${id}/change-location`,
           endereco,
           { headers: { Authorization: `bearer ${tokenKey}` } }
         );

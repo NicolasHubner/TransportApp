@@ -1,3 +1,13 @@
+//*************************************************************************** */
+// Aplicativo TROUW Tecnologia
+// 
+// Alterações
+//
+//  23.12.22 - TIAKI
+//      - alteração da url da api de redefinção de senha
+//
+//*************************************************************************** */
+
 import React, { useState, useEffect } from "react";
 import {
   ScrollView,
@@ -69,7 +79,10 @@ export default function EmailRecover({ navigation }) {
       const validEmail = { email };
       await schema.validate(validEmail, { abortEarly: false });
 
-      const res = await api.post("/app/forgot-password", validEmail);
+      //  23.12.22...
+      const res = await api.post("/user/forgot-password", validEmail);
+      //  ...23.12.22
+      
       if (res.data.success) {
         navigation.navigate("CodeRecover");
       }
