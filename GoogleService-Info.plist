@@ -3,21 +3,21 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>216457595812-7bjqse79af72qh17s29g6paqsf71rb0e.apps.googleusercontent.com</string>
+	<string>257007758525-c8ek958qsu47omd51pvbpaect5aog108.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.216457595812-7bjqse79af72qh17s29g6paqsf71rb0e</string>
+	<string>com.googleusercontent.apps.257007758525-c8ek958qsu47omd51pvbpaect5aog108</string>
 	<key>API_KEY</key>
-	<string>AIzaSyBfcUsBKGa1G-EcXYWQHkQnVAZTg3ivLKY</string>
+	<string>AIzaSyAfqkeAj0UKKA6OBzFjysBmn1g-dsvRxEs</string>
 	<key>GCM_SENDER_ID</key>
-	<string>216457595812</string>
+	<string>257007758525</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>dev.com.trouw.mobile</string>
+	<string>com.trouw.mobile</string>
 	<key>PROJECT_ID</key>
-	<string>livemobile-dev</string>
+	<string>trouwapp-c502d</string>
 	<key>STORAGE_BUCKET</key>
-	<string>livemobile-dev.appspot.com</string>
+	<string>trouwapp-c502d.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -29,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:216457595812:ios:4e6d2253faae9c3ca0cf31</string>
+	<string>1:257007758525:ios:ad93bbffd5b0f0365c5bd4</string>
 </dict>
 </plist>
