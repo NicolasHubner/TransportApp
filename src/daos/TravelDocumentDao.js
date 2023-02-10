@@ -17,6 +17,7 @@ export class TravelDocumentDao extends Dao {
         invoiceObservation,
         status,
         quantity,
+        mission_id
     }) {
         const realmContext = await this.getContext();
         const dataObj = {
@@ -32,6 +33,7 @@ export class TravelDocumentDao extends Dao {
             invoiceObservation: invoiceObservation,
             status: status,
             quantity: quantity,
+            mission_id: mission_id
         };
         realmContext.write(() => {
             const myObject = realmContext.objectForPrimaryKey(this.tableName, dataObj.id);
@@ -48,6 +50,7 @@ export class TravelDocumentDao extends Dao {
                 myObject.invoiceObservation = invoiceObservation;
                 myObject.status = status;
                 myObject.quantity = quantity;
+                myObject.mission_id = mission_id;
             }
             else {
                 realmContext.create(this.tableName, dataObj);
@@ -58,5 +61,10 @@ export class TravelDocumentDao extends Dao {
     static async getAllByLocal(id) {
         const context = await this.getContext();
         return context.objects(this.tableName).filtered(`travel_local_id = ${id}`);
+    }
+
+    static async getAllByMission(id) {
+        const context = await this.getContext();
+        return context.objects(this.tableName).filtered(`mission_id = ${id}`);
     }
 }

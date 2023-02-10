@@ -89,6 +89,7 @@ export default function ExpandedMap({ navigation, route }) {
       // PEGA E GUARDA AS COORDENADAS ATUAL DO USER
       let atualLocation = await getLocation();
       setAtualLocation(atualLocation);
+      setRefresh(!refresh);
 
       // PEGA E GUARDA AS COORDENADAS INICIAL DO USER
       if (initialLocation.latitudeDelta === 0) {
@@ -138,6 +139,7 @@ export default function ExpandedMap({ navigation, route }) {
           setDestineLocation(location);
         }
         setData(response.data);
+        setRefresh(!refresh);
       }
     } catch (error) {
 
@@ -249,15 +251,19 @@ export default function ExpandedMap({ navigation, route }) {
       Alert.alert("Atenção", error.response.data.message, [{ text: "OK" }], {
         cancelable: false,
       });
+
+      setRefresh(!refresh);
     }
   };
 
   useEffect(() => {
+    console.log("VERIFICA SE O USUÁRIO CHEGOU AO LOCAL A CADA 10 SEGUNDOS");
+    console.log("refresh", refresh);
     // VERIFICA SE O USUÁRIO CHEGOU AO LOCAL A CADA 10 SEGUNDOS
     setTimeout(() => {
       interval();
-    }, 10000);
-  }, [refresh]);
+    }, 1000);
+  },[refresh]);
 
   //roda o init sempre que navegar para esta tela
   useEffect(() => {

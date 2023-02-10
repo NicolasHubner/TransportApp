@@ -1,5 +1,4 @@
 import reactotron from "reactotron-react-native";
-import { index } from "realm";
 import { Dao } from "../daos/Dao";
 import { TravelContactDao } from "../daos/TravelContactDao";
 import { TravelDao } from "../daos/TravelDao";
@@ -10,6 +9,7 @@ import { TravelMissionDao } from "../daos/TravelMissionDao";
 import { api } from "../services/api";
 
 export class TravelController {
+  
   static async getTravels(token) {
     let outError = null;
     try {
@@ -51,23 +51,27 @@ export class TravelController {
 
     if (response.data.success && response.data.data) {
       const travel = response.data.data;
-      TravelDao.createOrUpdate(travel);
+      await TravelDao.createOrUpdate(travel);
+
+      console.log(travel.locals.length);
+      console.log(JSON.stringify(travel.locals));
 
       for (const local of travel.locals) {
+        
         local.merged = local.merged?.toString();
         local.icon = travel.icon;
-        TravelLocalDao.createOrUpdate(local);
+        await TravelLocalDao.createOrUpdate(local);
 
         for (const mission of local.missions) {
-          TravelMissionDao.createOrUpdate(mission);
+          await TravelMissionDao.createOrUpdate(mission);
         }
 
         for (const document of local.documents) {
-          TravelDocumentDao.createOrUpdate(document);
+          await TravelDocumentDao.createOrUpdate(document);
         }
 
         for (const contact of local.contacts) {
-          TravelContactDao.createOrUpdate(contact);
+          await TravelContactDao.createOrUpdate(contact);
         }
       }   
     }
@@ -122,9 +126,11 @@ export class TravelController {
         result.totalDelivery =
           local.qty_delivery > 0
             ? result.totalDelivery + local.qty_delivery
-            : result.totalCollect;
+            : result.totalDelivery;
       });
     }
+
+    reactotron.log(result);
 
     return JSON.parse(JSON.stringify(result));
   }
@@ -146,9 +152,19 @@ export class TravelController {
     }
 
     result.data = await TravelLocalDao.findById(id);
+    console.log("TravelLocalDao.findById(id)", id, JSON.stringify(result.data));
     const idsMerged = result.data.merged.split(',');
     console.log("bbb", idsMerged);
-    result.has_mission = (await TravelMissionDao.getAllByLocal(idsMerged))?.length > 0;
+    
+    if(result.data.type == "ORIGEM" 
+      || result.data.type == "DESTINO") {
+      result.has_mission = false;    
+    }
+    else {
+      result.has_mission = (await TravelMissionDao.getAllByLocal(idsMerged))?.length > 0;
+    }
+
+
     return JSON.parse(JSON.stringify(result));
   }
 
@@ -179,7 +195,7 @@ export class TravelController {
 
     for (const mission of missions) {
       mission.contact = await TravelContactDao.findFirstByLocal(result.local.location_owner_id);
-      mission.document = await TravelDocumentDao.getAllByLocal(id);
+      mission.document = await TravelDocumentDao.getAllByMission(mission.id);
       result.missions.push(mission);
     }
 
@@ -222,7 +238,7 @@ export class TravelController {
     console.log("mission", mission);
     const local = await TravelLocalDao.findById(mission.travel_local_id);
     console.log("local", local);
-    const documents = await TravelDocumentDao.getAllByLocal(local.id);
+    const documents = await TravelDocumentDao.getAllByMission(mission.id);
     console.log("documents", documents);
     mission.contact = await TravelContactDao.findFirstByLocal(local.location_owner_id);
     console.log("mission.contact", mission.contact);

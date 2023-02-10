@@ -16,12 +16,16 @@ import { Button } from "react-native-paper";
 import { startActivityAsync, ActivityAction } from 'expo-intent-launcher';
 
 export default function ModalLocationDisabled({ hideModal }) {
-   
+  
+  let control = false;
   // 15.12.22...
-  const handleButtonClick = () => {
+  const handleButtonClick = async() => {
+    
     Platform.OS === 'ios'
         ? Linking.openSettings()
-        : startActivityAsync(ActivityAction.LOCATION_SOURCE_SETTINGS);
+        : startActivityAsync(ActivityAction.LOCATION_SOURCE_SETTINGS, {
+          data: 'package:' + "com.trouw.mobile",
+        });
     hideModal()
   }
   //...15.12.22

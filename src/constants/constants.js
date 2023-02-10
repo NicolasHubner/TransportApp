@@ -53,3 +53,11 @@ export const MISSION_STATUS = {
   1: 'success',
   2: 'failed'
 };
+
+export const EVENT_TYPE = {
+  LOCAL_CHANGE_STATUS: 0,
+  MISSION_CHANGE_STATUS: 1,
+  TRAVEL_CHANGE_STATUS: 2,
+  NEXT_STEP: 3,
+  NO_ACTION: 4
+};

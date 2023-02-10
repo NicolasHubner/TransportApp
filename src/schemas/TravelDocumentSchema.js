@@ -16,5 +16,6 @@ export const TravelDocumentSchema = {
     invoiceObservation: "string?",
     status: "string?",
     quantity: {type: "int", default: 0},
+    mission_id: {type: "int", default: 0}
   },
 };

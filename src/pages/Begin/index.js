@@ -53,7 +53,7 @@ export default function Begin({ navigation, route }) {
     await AsyncStorage.removeItem(REGISTER);
 
     try {
-      const modalLogoff = await route.params.back
+      const modalLogoff = await route?.params?.back
       console.log(modalLogoff);
       if (modalLogoff) {
         showModalLogoff()

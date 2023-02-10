@@ -22,6 +22,7 @@ import {
 import { api } from "../services/api";
 import crashlytics from '@react-native-firebase/crashlytics';
 import * as TaskManager from "expo-task-manager"; // 12.12.22 
+import BackgroundTaskController from "../controllers/BackgroundTaskController";
 
 const AuthContext = createContext({ signed: false, user: {} });
 
@@ -96,9 +97,11 @@ export const AuthProvider = ({ children }) => {
       // 12.12.22...
       console.log("Vai desfazer registros listeners no SignOut...");
       crashlytics().log("Vai desfazer registros listeners e terminar app no SignOut...");
-      TaskManager.unregisterAllTasksAsync();  // Cancela registros
+      await BackgroundTaskController.stopLocationTracking();
+      await BackgroundTaskController.unregisterAllTasksAsync();
+      await TaskManager.unregisterAllTasksAsync();  // Cancela registros
       console.log("Desfez registros de tasks antes de sair!");
-      BackHandler.exitApp()                   // Termina a execução do APP
+      BackHandler.exitApp();                   // Termina a execução do APP
        //...12.12.22
     } catch (error) {
       crashlytics().recordError(error);
@@ -107,6 +110,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
     } finally {
       setLoading(false);
+      BackHandler.exitApp(); 
     }
   }
 

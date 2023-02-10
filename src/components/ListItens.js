@@ -18,7 +18,7 @@ export default function ListItens({
   func,
 }) {
   let local = mission;
-  // console.log("mission", mission);
+  console.log("mission not confirmed", mission);
   let contact = null;
 
   if (local?.contact) {

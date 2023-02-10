@@ -1,75 +1,74 @@
 import React, { useEffect, useState } from "react";
-import { View, Image, ImageBackground, ActivityIndicator, Text, StyleSheet, Modal } from "react-native";
+import {
+  View,
+  Image,
+  ImageBackground,
+  ActivityIndicator,
+  Text,
+  StyleSheet,
+  Modal,
+} from "react-native";
 import fundo from "../assets/images/background.png";
 import { Button } from "react-native-paper";
 import LocationController from "../controllers/LocationController";
 import BackgroundTaskController from "../controllers/BackgroundTaskController";
-import * as Location from 'expo-location';
+import * as Location from "expo-location";
+import * as ImagePicker from "expo-image-picker";
 
-export default function Splash({setIsLoading = () => {}, opening}) {
-
-  const[showModal, setShowModal] = useState(false);
-
-  const [status] = Location.useBackgroundPermissions();
+export default function Splash({ setIsLoading = () => {}, opening }) {
+  const [showModal, setShowModal] = useState(false);
 
   async function getPermissions() {
-    
-    const permission = await BackgroundTaskController.requestBackgroundPermissions();
-    
-    //ENVIA OS DADOS DA LOCALIZAÇÃO A CADA 30S
-    if (permission) {
+    await BackgroundTaskController.unregisterAllTasksAsync();
+    const a =
+      await LocationController.verificaAutorizacaoBackgroundLocalizacao();
+    const b = await LocationController.verificaAtivacaoLocalizacao();
+    const c = await BackgroundTaskController.requestBackgroundPermissions();
+    console.log(`permissions: a:${a} - b:${b} - c:${c}`);
+    // //ENVIA OS DADOS DA LOCALIZAÇÃO A CADA 30S
+    if (a && b && c) {
       console.log("Splash vai iniciar pedido e envio posições...");
-  
-      BackgroundTaskController.startLocationTracking();
-      BackgroundTaskController.startLocationSending();
-      setInterval(async () => {
-        await LocationController.sendLocationsTask();
-      }, 30000);
+
+      const locationService =
+        await BackgroundTaskController.startLocationTracking();
+      const sendService = await BackgroundTaskController.startLocationSending();
+      console.log(
+        `locationService: ${locationService}, sendService: ${sendService}`
+      );
     }
   }
 
-
-  useEffect(() => {
-    init();
-  }, []);
-
-  async function init(){
-
-    if(status == null){
-      return;
-    }
-
-    // Se o usuário ainda não tiver permitido o uso da localização o modal de aviso aparece
-    if(status?.granted == false){
-      setShowModal(true);
-    }
-    else{ // Se não vai para a tela de login depois de 2s
-      setTimeout(function () {
-        goLogin();
-      }, 2000);
-    }
-  }
-
-  // Define o estado 'isLoading' no index como false para ir na tela de login 
-  function goLogin(){
-    getPermissions();
+  // Define o estado 'isLoading' no index como false para ir na tela de login
+  async function goLogin() {
+    await getPermissions();
     setIsLoading(false);
   }
 
   //  Ao clicar em 'Ativar a localização' no modal o sistema pede a autorização e vai para o login
-  async function closeModal(){
+  async function closeModal() {
     setShowModal(false);
     goLogin();
   }
 
-  // a função init é chamada sempre que o status da autorização de localização mudar 
-  // apenas se for o carregamento de inicio do app
-  useEffect(()=>{
-    if(opening){
-      init();
-    }
-  },[status])
+  useEffect(() => {
+    const requestPermissions = async () => {
+      const foreground = await Location.requestForegroundPermissionsAsync();
+      if (foreground.granted) {
+        const background = await Location.requestBackgroundPermissionsAsync();
+        if (background.granted) {
+          const camera = await ImagePicker.requestCameraPermissionsAsync(); //verifica PERMISSAO
+          console.log(camera);
+          if (camera.granted) {
+            const media = await ImagePicker.requestMediaLibraryPermissionsAsync(); //verifica permissao
+            console.log("a", media);
 
+            if (media.granted) goLogin();
+          }
+        }
+      }
+    };
+    requestPermissions();
+  }, []);
 
   return (
     <ImageBackground
@@ -83,19 +82,18 @@ export default function Splash({setIsLoading = () => {}, opening}) {
           source={require("../assets/images/logo.png")}
         />
         <ActivityIndicator size="large" color="white" />
-          <Modal transparent={true} visible={showModal} dismissable={false}>
+        <Modal transparent={true} visible={showModal} dismissable={false}>
           <View style={styles.modal}>
             <View style={styles.modalLocal}>
               <View style={{ flexDirection: "row" }}>
                 <Text style={styles.textModal}>
-                  A Trouw coleta dados da localização para ativar o recurso de monitoramento e rastreio de 
-                  entregas/coletas, mesmo quando o app está em segundo plano ou em uso.
+                  A Trouw coleta dados da localização para ativar o recurso de
+                  monitoramento e rastreio de entregas/coletas, mesmo quando o
+                  app está em segundo plano ou em uso.
                 </Text>
               </View>
               <View>
-                <Image
-                  source={require("../assets/images/alert_gps.png")}
-                />
+                <Image source={require("../assets/images/alert_gps.png")} />
               </View>
               <View>
                 <Button
@@ -132,8 +130,8 @@ const styles = StyleSheet.create({
   stretch: {
     height: 33,
     width: 252,
-    resizeMode: 'stretch',
-    marginBottom: 40
+    resizeMode: "stretch",
+    marginBottom: 40,
   },
   modalLocal: {
     alignItems: "center",
@@ -155,19 +153,19 @@ const styles = StyleSheet.create({
   },
   textModal: {
     fontSize: 22,
-    padding:"10%",
-    marginBottom:"-10%"
+    padding: "10%",
+    marginBottom: "-10%",
   },
   buttonContent: {
     height: 40,
     width: "100%",
     backgroundColor: "#275D85",
-    borderColor: "#275D85"
+    borderColor: "#275D85",
   },
-  button:{
+  button: {
     borderRadius: 50,
     width: "100%",
-    marginBottom:"10%"
+    marginBottom: "10%",
   },
   buttonReport: {
     marginTop: 15,
