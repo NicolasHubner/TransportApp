@@ -20,12 +20,12 @@ import { startActivityAsync, ActivityAction, Settings } from 'expo-intent-launch
 export default function ModalLocationRefused({ hideModal }) {
 
   //edicao
-  const handleButtonClick = () => {
+  const handleButtonClick = async() => {
     // 15.12.22...
     Platform.OS === 'ios'
         ? Linking.openSettings()
         : startActivityAsync(ActivityAction.APPLICATION_DETAILS_SETTINGS, {
-          data: 'package:' + "dev.com.trouw.mobile",
+          data: 'package:' + "com.trouw.mobile",
         });
     //...15.12.22
     hideModal()

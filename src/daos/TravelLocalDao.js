@@ -29,8 +29,8 @@ export class TravelLocalDao extends Dao {
         qty_delivery,
         qty_collect,
         not_confirmed = 0,
-        total_missions,
-        confirmed_missions,
+        total_missions = 0,
+        confirmed_missions = 0,
         status_missions = "",
         wazer,
         google_maps,
@@ -110,6 +110,8 @@ export class TravelLocalDao extends Dao {
                 realmContext.create(this.tableName, dataObj);
             }
         });
+
+        console.log(`travel_id = ${dataObj.travel_id} e local_id = ${dataObj.id} criado`);
     }
 
     static async getAllByTravel(id) {

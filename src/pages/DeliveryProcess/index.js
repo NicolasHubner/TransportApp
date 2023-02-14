@@ -524,6 +524,16 @@ export default function DeliveryProcess({ navigation, route }) {
       } else {
         console.log(error.message);
       }
+
+      Alert.alert(
+        "AVISO",
+        "Houve um erro ao tentar enviar dados",
+        [{ text: "OK" }],
+        {
+          cancelable: false,
+        }
+      );
+
       setButtonLoading(false);
     }
   }

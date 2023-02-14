@@ -123,8 +123,11 @@ export default function ContactLocals({ navigation, route }) {
                             data={trip.missions_not_confirmed_with_contacts}
                             keyExtractor={(mission) => String(mission.id)}
                             showsVerticalScrollIndicator={false}
-                            renderItem={({ item: mission }) => (
-                              <View style={styles.card}>
+                            renderItem={({ item: mission }) => {
+
+                              console.log(mission);
+                              
+                              return (<View style={styles.card}>
                                 <ListItens
                                   navigation={navigation}
                                   mission={mission}
@@ -132,8 +135,8 @@ export default function ContactLocals({ navigation, route }) {
                                   token={token}
                                   func={reloadList}
                                 />
-                              </View>
-                            )}
+                              </View>)
+                            }}
                           />
                         )}
                         <Pressable

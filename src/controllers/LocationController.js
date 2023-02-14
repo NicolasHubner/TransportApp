@@ -13,20 +13,37 @@ import {
   TOKEN_KEY,
   USER_ID,
 } from "../constants/constants";
-import * as Battery from 'expo-battery';
+import * as Battery from "expo-battery";
 import StorageController from "./StorageController";
 import { format } from "date-fns";
 import { api } from "../services/api";
 import { LocationDao } from "../daos/LocationDao";
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from "@react-native-firebase/crashlytics";
 
 import axios from "axios";
 
 function LocationController() {
-  const saveLocationsTask = async (lat, long, speed, accuracy, altitude, altitudeAccuracy, direction) => { //adicao de parametros
+  const saveLocationsTask = async (
+    lat,
+    long,
+    speed,
+    accuracy,
+    altitude,
+    altitudeAccuracy,
+    direction
+  ) => {
+    //adicao de parametros
     try {
       const lastLocation = await saveLastLocation(lat, long);
-      const arrayLocation = await saveArrayLocations(lat, long, speed, accuracy, altitude, altitudeAccuracy, direction); //adicao de parametros
+      const arrayLocation = await saveArrayLocations(
+        lat,
+        long,
+        speed,
+        accuracy,
+        altitude,
+        altitudeAccuracy,
+        direction
+      ); //adicao de parametros
 
       if (lastLocation && arrayLocation) {
         await StorageController.salvarPorChave(GPS_STATUS, "SUCESSO");
@@ -61,14 +78,36 @@ function LocationController() {
   };
 
   // SALVA A LOCALIZAÇÃO MAIS DETALHADA DO USUARIO
-  const saveArrayLocations = async (lat, long, speed, accuracy, altitude, altitudeAccuracy, direction) => { //adicao de parametros
+  const saveArrayLocations = async (
+    lat,
+    long,
+    speed,
+    accuracy,
+    altitude,
+    altitudeAccuracy,
+    direction
+  ) => {
+    //adicao de parametros
     try {
       const date = format(new Date(), "yyyy-MM-dd HH:mm:ss");
       let battery = await Battery.getBatteryLevelAsync();
       battery = Math.round(battery * 100);
 
       //adicao de parametros
-      await LocationDao.save(lat, long, Math.round(speed), battery, 1, "GPRS", "first_plane", date, accuracy, altitude, altitudeAccuracy, direction);
+      await LocationDao.save(
+        lat,
+        long,
+        Math.round(speed),
+        battery,
+        1,
+        "GPRS",
+        "first_plane",
+        date,
+        accuracy,
+        altitude,
+        altitudeAccuracy,
+        direction
+      );
 
       return true;
     } catch (error) {
@@ -92,8 +131,7 @@ function LocationController() {
       let dataEnv = false;
 
       if (arrayLocations.length > 0) {
-
-        dataEnv = []
+        dataEnv = [];
         let dateSend = format(new Date(), "yyyy-MM-dd HH:mm:ss");
 
         for (let i = 0; i < arrayLocations.length; i++) {
@@ -117,10 +155,9 @@ function LocationController() {
         }
       }
 
-      const positions = { positions: dataEnv }
+      const positions = { positions: dataEnv };
 
       if (dataEnv && token) {
-
         const response = await api.post(`/positions`, positions, {
           headers: { Authorization: `bearer ${token}` },
         });
@@ -170,6 +207,16 @@ function LocationController() {
       crashlytics().recordError(error);
       console.log(error.message);
     } finally {
+      console.log("buscaLocal: ", location);
+      saveLocationsTask(
+        location.coords.latitude,
+        location.coords.longitude,
+        location.coords.speed,
+        location.coords.accuracy,
+        location.coords.altitude,
+        location.coords.altitudeAccuracy,
+        location.coords.direction
+      );      
       return location;
     }
   };
@@ -242,7 +289,7 @@ function LocationController() {
       Math.asin(
         Math.sqrt(
           Math.pow(Math.sin(latD / 2), 2) +
-          Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(lonD / 2), 2)
+            Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(lonD / 2), 2)
         )
       );
 
@@ -282,7 +329,6 @@ function LocationController() {
       return true;
     }
   };
-
 
   return {
     buscaLocal,

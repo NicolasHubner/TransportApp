@@ -41,11 +41,15 @@ TaskManager.defineTask(LOCATION_TRACKING, async ({ data, error }) => {
 
     saveLocations(lat, long, speed, accuracy, altitude, altitudeAccuracy, direction); //adicao de parametros
     showNotification(lat, long);
+    
+    setTimeout(() => LocationController.sendLocationsTask(), 3000);
   }
 });
 
 TaskManager.defineTask(LOCATION_SENDING, async () => {
+  console.log(LOCATION_SENDING);
   await LocationController.sendLocationsTask();
+  return BackgroundFetch.BackgroundFetchResult.NewData;
 });
 
 //adicao de parametros
@@ -76,8 +80,11 @@ const showNotification = async (lat, long) => {
 
 // VERIFICA SE O USUÁRIO AUTORIZOU O USO DA LOCALIZAÇÃO EM SEGUNDO PLANO
 function BackgroundTaskController() {
-  TaskManager.unregisterAllTasksAsync();
-  console.log("BackgroundTaskController desfez registros");
+
+  const unregisterAllTasksAsync = async() => {
+    console.log("BackgroundTaskController desfez registros");
+    return TaskManager.unregisterAllTasksAsync();
+  }
 
   const requestBackgroundPermissions = async () => {
     let { status } = await Location.requestBackgroundPermissionsAsync();
@@ -101,36 +108,51 @@ function BackgroundTaskController() {
     console.log("BackgroundTaskController iniciou envio posições...Registrado=", isRegistered);
     if (!isRegistered) {
       return BackgroundFetch.registerTaskAsync(LOCATION_SENDING, {
-        minimumInterval: 120, // 120 seconds
+        minimumInterval: 1, // 120 seconds
         stopOnTerminate: false, // android only,
         startOnBoot: true, // android only
       });
-    } else {
-      return;
     }
+
+    return true;
   };
 
   // INICIA A TAREFA DE PEGAR A LOCALIZAÇÃO EM SEGUNDO PLANO A CADA 10 SEGUNDOS
   const startLocationTracking = async () => {
     console.log("BackgroundTaskController vai iniciar update de posições...");
     
-    await Location.startLocationUpdatesAsync(LOCATION_TRACKING, {
-      accuracy: Location.Accuracy.BestForNavigation,
-      timeInterval: 120000,
-      foregroundService: {
-        notificationTitle: "Trouw",
-        notificationBody: "consultando sua localização",
-        notificationColor: "#AA1111",
-      },
-      deferredUpdatesInterval: 120000,
-    });
     const hasStarted = await Location.hasStartedLocationUpdatesAsync(
       LOCATION_TRACKING
     );
     console.log("tracking started?", hasStarted);
+
+    if(!hasStarted) {
+      return await Location.startLocationUpdatesAsync(LOCATION_TRACKING, {
+        accuracy: Location.Accuracy.BestForNavigation,
+        timeInterval: 120000,
+        foregroundService: {
+          notificationTitle: "Trouw",
+          notificationBody: "consultando sua localização",
+          notificationColor: "#AA1111",
+        },
+        deferredUpdatesInterval: 120000,
+      });
+    }
+
+    return true;
+    
+  };
+
+  const stopLocationTracking = async() => {
+      const tracking = TaskManager.isTaskRegisteredAsync(LOCATION_TRACKING);
+      if (tracking) {
+        Location.stopLocationUpdatesAsync(LOCATION_TRACKING);
+      }
   };
 
   return {
+    stopLocationTracking,
+    unregisterAllTasksAsync,
     requestBackgroundPermissions,
     startLocationTracking,
     startLocationSending

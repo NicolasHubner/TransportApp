@@ -33,10 +33,13 @@ export default function ModalContact({
   let contactPhones = [];
 
   if (local?.contact) {
-    contact = local?.contact;
+    if(local?.contact.length > 0)
+      contact = local?.contact[0];
+    else
+      contact = local?.contact;
   }
 
-  reactotron.log(local);
+  reactotron.log(local.contact[0]);
   if (
     contact &&
     ( contact?.cell_phone ||

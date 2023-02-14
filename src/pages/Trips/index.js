@@ -23,7 +23,7 @@ import Footer from "../../components/Footer";
 import * as Location from "expo-location";
 import { api } from "../../services/api";
 import styles from "./styles";
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from "@react-native-firebase/crashlytics";
 import { TravelController } from "../../controllers/TravelController";
 
 export default function Trips({ navigation }) {
@@ -38,7 +38,7 @@ export default function Trips({ navigation }) {
   // DEFINE O ESTADO DOS MODAIS
   const showModalLocationRefused = () => setLocationRefusedVisible(true);
   const hideModalLocationRefused = () => setLocationRefusedVisible(false);
-  
+
   // DEFINE O ESTADO DOS MODAIS
   const showModalLocationDisabled = () => setLocationDisabledVisible(true);
   const hideModalLocationDisabled = () => setLocationDisabledVisible(false);
@@ -53,12 +53,12 @@ export default function Trips({ navigation }) {
       await LocationController.verificaAtivacaoLocalizacao();
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
       const userId = await StorageController.buscarPorChave(USER_ID);
-      
-      if(userId) {
+
+      if (userId) {
         crashlytics().setAttribute("usuario", userId);
         crashlytics().setUserId(userId);
       }
-      
+
       if (token) {
         const response = await TravelController.getTravels(token);
         if (response.length > 0) {

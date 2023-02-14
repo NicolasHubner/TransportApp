@@ -1,3 +1,4 @@
+import { EventSchema } from "../schemas/EventSchema";
 import { LocationsSchema } from "../schemas/LocationSchema";
 import { TravelContactSchema } from "../schemas/TravelContactSchema";
 import { TravelDocumentSchema } from "../schemas/TravelDocumentSchema";
@@ -15,6 +16,7 @@ export const getRealmContext = async() => await Realm.open({
       TravelLocalSchema,
       TravelMissionSchema,
       TravelSchema,
-      TravelInsuccessTypeSchema 
+      TravelInsuccessTypeSchema,
+      EventSchema 
     ],
   });
