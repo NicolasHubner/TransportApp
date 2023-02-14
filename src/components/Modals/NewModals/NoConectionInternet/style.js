@@ -22,25 +22,20 @@ export const styles = StyleSheet.create({
       elevation: 5,
       borderRadius: 5,
     },
-  
     textModal: {
       fontSize: 22,
     },
-  
     ViewTexts: {
         width: "100%",
         alignItems: "flex-start",
         paddingLeft: "5%",
     },
-
     ViewButtons: {
         width: "100%",
         alignItems: "center",
         marginTop: "15%",
-        // backgroundColor: "red",
     },
     buttonBlue: {
-        // width: "100%",
         width: "90%",
         height: 40,
         backgroundColor: "#00557C",
