@@ -57,8 +57,8 @@ export class TravelContactDao extends Dao {
 
     static async findFirstByLocal(id) {
         const context = await this.getContext();
-        const result = context.objects(this.tableName).filtered(`location_owner_id = ${id}`);
-
+        let result = context.objects(this.tableName).filtered(`location_owner_id = ${id}`);
+        result = JSON.parse(JSON.stringify(result));
         return result[0];
     }
 }

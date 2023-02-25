@@ -65,6 +65,7 @@ export class TravelDocumentDao extends Dao {
 
     static async getAllByMission(id) {
         const context = await this.getContext();
-        return context.objects(this.tableName).filtered(`mission_id = ${id}`);
+        let list = context.objects(this.tableName).filtered(`mission_id = ${id}`);
+        return JSON.parse(JSON.stringify(list));
     }
 }

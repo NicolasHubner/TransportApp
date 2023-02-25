@@ -215,29 +215,38 @@ export class EventsController {
   }
 
   static async syncEvents() {
-    // let eventList = await EventDao.getTop(50);
-    // eventList = JSON.parse(JSON.stringify(eventList));
-    // console.log(`EventsController.syncEvents: ${eventList.length}`);
-    // const token = await StorageController.buscarPorChave(TOKEN_KEY);
+    let eventList = await EventDao.getTop(50);
+    eventList = JSON.parse(JSON.stringify(eventList));
+    console.log(`EventsController.syncEvents: ${eventList.length}`);
+    const token = await StorageController.buscarPorChave(TOKEN_KEY);
 
-    // for (const event of eventList) {
-    //   try {
-    //     const header = { authorization: `bearer ${token}` };
-    //     const data = JSON.parse(event.request);
-    //     console.log(`event url - ${event.url}`);
-    //     console.log(`event header - ${header}`);
-    //     console.log(`event data - ${data}`);
-    //     const response = await api.post(event.url,
-    //       data,
-    //       {headers: header},
-    //     );
-    //     console.log(`EventsController.syncEvents: idEvent ${event.id}`)
-    //     if (response.data.success) await EventDao.deleteList([event]);
-    //   } catch (error) {
-    //     console.log(`syncEvents error: ${error}`);
-    //     crashlytics().recordError(error, "EventsController.syncEvents error");
-    //   }
-    // }
+    for (const event of eventList) {
+      try {
+        const header = { authorization: `bearer ${token}` };
+        const data = JSON.parse(event.request);
+        console.log(`event url - ${event.url}`);
+        console.log(`event header - ${header}`);
+        console.log(`event data - ${data}`);
+
+        if(event.url.contains('/confirmed')) {
+          const response = await api.put(event.url,
+            data,
+            {headers: header},
+          );  
+        }else {
+          const response = await api.post(event.url,
+            data,
+            {headers: header},
+          );
+        }
+
+        console.log(`EventsController.syncEvents: idEvent ${event.id}`)
+        if (response.data.success) await EventDao.deleteList([event]);
+      } catch (error) {
+        console.log(`syncEvents error: ${error}`);
+        crashlytics().recordError(error, "EventsController.syncEvents error");
+      }
+    }
   }
 
   static async updateLocalToDone(id) {
