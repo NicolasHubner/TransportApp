@@ -20,6 +20,7 @@ import {
   APP_NAVIGATION,
   ARRIVAL_NOTIFICATION,
   DESTINY_PAGE,
+  EVENT_TYPE,
   LOCAL_COORD,
   TOKEN_KEY,
 } from "../../../constants/constants";
@@ -32,11 +33,12 @@ import Loading from "../../../components/Loading";
 import { Button } from "react-native-paper";
 import { Marker } from "react-native-maps";
 import MapView from "react-native-maps";
-import {api} from "../../../services/api";
+import { api } from "../../../services/api";
 import { format } from "date-fns";
 import styles from "./styles";
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from "@react-native-firebase/crashlytics";
 import { TravelController } from "../../../controllers/TravelController";
+import { EventsController } from "../../../controllers/EventsController";
 
 export default function ExpandedMap({ navigation, route }) {
   const [activeDestineChange, setActiveDestineChange] = useState(false);
@@ -97,11 +99,11 @@ export default function ExpandedMap({ navigation, route }) {
       }
       // let map = await StorageController.buscarPorChave(APP_NAVIGATION);
 
-      // PEGA E GUARDA O TOKEN DE AUTENTICAÇÃO PARA FAZER AS REQUISIÇÕES 
+      // PEGA E GUARDA O TOKEN DE AUTENTICAÇÃO PARA FAZER AS REQUISIÇÕES
       const tokenKey = await StorageController.buscarPorChave(TOKEN_KEY);
       setToken(tokenKey);
 
-      // PEGA E GUARDA OS PARAMETROS DA ROTA COMO 'TRAVEL', 'PLATFORM' E 'LOCAL' 
+      // PEGA E GUARDA OS PARAMETROS DA ROTA COMO 'TRAVEL', 'PLATFORM' E 'LOCAL'
       const params = await route.params;
       let idLocal = "";
       if (params?.local) {
@@ -116,9 +118,12 @@ export default function ExpandedMap({ navigation, route }) {
       // }
 
       // FAZ A REQUISIÇÃO PARA PEGAR E GUARDAR OS DADOS DO LOCAL DE DESTINO
-      const response = await TravelController.getLocalNavigation(tokenKey, idLocal);
+      const response = await TravelController.getLocalNavigation(
+        tokenKey,
+        idLocal
+      );
 
-      console.log("has_mission", response.has_mission)
+      console.log("has_mission", response.has_mission);
       if (response) {
         setTravel(response.data.travel_id);
         setHasMission(response.has_mission);
@@ -142,7 +147,6 @@ export default function ExpandedMap({ navigation, route }) {
         setRefresh(!refresh);
       }
     } catch (error) {
-
       crashlytics().recordError(error);
       // VERIFICAÇÃO E TRATAMENTO DE ERROS
       if (error.response) {
@@ -164,7 +168,7 @@ export default function ExpandedMap({ navigation, route }) {
 
   const interval = async () => {
     try {
-
+      console.log(`Destino: ${destineLocation.latitude} ${destineLocation.longitude}`);
       // CALCULA A DISTÂNCIA DO LOCAL ATUAL E DO LOCAL DO DESTINO
       const newLocation = await getLocation();
       if (newLocation && destineLocation) {
@@ -174,8 +178,11 @@ export default function ExpandedMap({ navigation, route }) {
           destineLocation.latitude,
           destineLocation.longitude
         );
+
         setDistance(arrivedDestine);
         setAtualLocation(newLocation);
+        console.log(`Destino: ${destineLocation.latitude} ${destineLocation.longitude}`);
+        console.log(`Distancia: ${arrivedDestine}`);
 
         // let endereco = await LocationController.buscaEndereco(
         //   newLocation.latitude,
@@ -197,24 +204,28 @@ export default function ExpandedMap({ navigation, route }) {
             // },
           };
 
-          console.log("event1", event);
-
           //INCLUI A VERIFICAÇÃO DE MISSÔES PARA O LOCAL
           if (hasMission) {
-            const responseEvent = await api.post(
+            const responseEvent = await EventsController.postEvent(
+              EVENT_TYPE.NO_ACTION,
+              token,
               `/travel/event/${travel}`,
-              event, {headers: { Authorization: `bearer ${token}` }}
+              event,
+              0
             );
             if (responseEvent) {
-              console.log("evento", responseEvent.data);
               setNewLocalVisible(true); // DIZ QUE TEM UM NOVO LOCAL DISPONIVEL
             }
           } else {
             // FAZ A REQUISIÇÃO DE MUDAR O STATUS DO LOCAL PARA CONCLUIDO
-            const response = await api.post(
+            const response = await EventsController.postEvent(
+              EVENT_TYPE.LOCAL_CHANGE_STATUS,
+              token,
               `/local/${local}/change-status`,
-              { status: "CONCLUIDO", uuid_group: true }, {headers: { Authorization: `bearer ${token}` }}
+              { status: "CONCLUIDO", uuid_group: true },
+              local
             );
+
             if (response) {
               let objSend = {
                 status: "CONCLUIDO",
@@ -224,16 +235,23 @@ export default function ExpandedMap({ navigation, route }) {
               };
 
               // FAZ A REQUISIÇÃO DE MUDAR O STATUS DA VIAGEM PARA CONCLUIDO
-              const responseTravel = await api.post(
-                `/travel/${travel}/change-status`, objSend, {headers: { Authorization: `bearer ${token}` }});
+              const responseTravel = await EventsController.postEvent(
+                EVENT_TYPE.TRAVEL_CHANGE_STATUS,
+                token,
+                `/travel/${travel}/change-status`,
+                objSend,
+                travel
+              );
+
               if (responseTravel) {
-                const responseEvent = await api.post(
+                const responseEvent = await EventsController.postEvent(
+                  EVENT_TYPE.NO_ACTION,
+                  token,
                   `/travel/event/${travel}`,
-                  event, {headers: { Authorization: `bearer ${token}` }}
+                  event,
+                  0
                 );
                 if (responseEvent) {
-                  console.log("evento", responseEvent.data);
-
                   //MOSTRA O MODAL DE CHEGADA NO DESTINO
                   showModalArrivedDestine();
                   await StorageController.removePorChave(DESTINY_PAGE);
@@ -263,7 +281,7 @@ export default function ExpandedMap({ navigation, route }) {
     setTimeout(() => {
       interval();
     }, 1000);
-  },[refresh]);
+  }, [refresh]);
 
   //roda o init sempre que navegar para esta tela
   useEffect(() => {
@@ -320,7 +338,11 @@ export default function ExpandedMap({ navigation, route }) {
     <>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <Header navigation={navigation} rota="SelectNavigation" parameter={{localId: local}} />
+          <Header
+            navigation={navigation}
+            rota="SelectNavigation"
+            parameter={{ localId: local }}
+          />
         </View>
         {isBusy && (
           <View style={{ flex: 15 }}>

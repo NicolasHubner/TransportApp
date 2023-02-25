@@ -131,4 +131,18 @@ export class TravelLocalDao extends Dao {
         const objects = context.objects(this.tableName).filtered(`id == ${id} OR merged CONTAINS '${id}'`);
         return objects.length > 0 ? objects[0] : null;
     }
+
+    static async getPendentsByTravel(travelId) {
+        const context = await this.getContext();
+        const objects = context.objects(this.tableName).filtered(`travel_id = ${travelId} AND status = 'PENDENTE' AND location_type_description != 'ORIGEM' && location_type_description != 'DESTINO'`).sorted('location_sequence');
+
+        return objects;
+    }
+
+    static async getPendingDestiny(travelId) {
+        const context = await this.getContext();
+        const objects = context.objects(this.tableName).filtered(`travel_id = ${travelId} AND status = 'PENDENTE' AND location_type_description == 'DESTINO'`);
+
+        return objects;
+    }
 }

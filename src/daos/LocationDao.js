@@ -13,6 +13,7 @@ export class LocationDao extends Dao {
         const realmContext = await this.getContext();
         realmContext.write(() => {
             realmContext.create(this.tableName, {
+                _id: this.generateUUID(),
                 lat: lat,
                 lng: lng,
                 speed: speed,
@@ -29,6 +30,13 @@ export class LocationDao extends Dao {
         });
 
         realmContext.close();
+    }
+
+    static async deleteList(array) {
+        for(obj of array) {
+            console.log("location",obj._id)
+            await this.delete(obj._id);
+        }
     }
 
 }

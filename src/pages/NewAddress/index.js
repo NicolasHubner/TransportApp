@@ -105,6 +105,7 @@ export default function NewAddress({ navigation, route }) {
           coords,
           { headers: { Authorization: `bearer ${tokenKey}` } }
         );
+        
         if (response) {
           const coord = {
             latitude: latitude,

@@ -49,14 +49,16 @@ import {
   TRAVEL_ID,
   LOCAL_ID,
   DESTINY_PAGE,
+  EVENT_TYPE,
 } from "../../constants/constants";
 import { format } from "date-fns";
 import styles from "./styles";
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from "@react-native-firebase/crashlytics";
 import { TravelController } from "../../controllers/TravelController";
+import { EventsController } from "../../controllers/EventsController";
+import reactotron from "reactotron-react-native";
 
 export default function DeliveryProcess({ navigation, route }) {
-
   const [address, setAddress] = useState("");
   const [isBusy, setIsBusy] = useState(true);
   // const [hasTrip, setHasTrip] = useState(true);
@@ -193,7 +195,7 @@ export default function DeliveryProcess({ navigation, route }) {
       setMissionId(missionId);
 
       if (localId && missionId) {
-        console.log("localId",localId);
+        console.log("localId", localId);
         const response = await TravelController.getMission(token, missionId);
         if (response) {
           // console.log("########### ->", response.data.data.travel_documents);
@@ -330,12 +332,11 @@ export default function DeliveryProcess({ navigation, route }) {
             cancelable: false,
           });
         } else {
-          console.log("camera canhoto")
-          const permissao = await CameraController.verificaPermissoes()
+          console.log("camera canhoto");
+          const permissao = await CameraController.verificaPermissoes();
 
           //se a permissao foi concedida e o usuario tirou uma foto, ocorre a manipulacao da foto do canhoto
           if (permissao) {
-
             let foto = await ImagePicker.launchCameraAsync({
               mediaTypes: ImagePicker.MediaTypeOptions.Images,
               allowsEditing: true,
@@ -389,24 +390,23 @@ export default function DeliveryProcess({ navigation, route }) {
   };
   //FIM EDICAO 06.12.2022
 
-  //EDIÇÃO TIAKI 30.11.2022 - antigo pickImagePhoto - PERMISSAO DE CAMERA E GALERIA, E MANIPULACAO DE FOTO 
+  //EDIÇÃO TIAKI 30.11.2022 - antigo pickImagePhoto - PERMISSAO DE CAMERA E GALERIA, E MANIPULACAO DE FOTO
   const pickImagePhoto = async () => {
     try {
       setReturnPage(true);
 
       //caso ja exista uma foto, abre a galeria de fotos do app
       if (imagePhoto) {
-        console.log("galeria")
+        console.log("galeria");
         navigation.navigate("PhotoGallery", mission);
 
         //caso n exista, solicita o uso da camera
       } else {
-        console.log("camera")
-        const permissao = await CameraController.verificaPermissoes()
+        console.log("camera");
+        const permissao = await CameraController.verificaPermissoes();
 
         //se a permissao foi concedida e o usuario tirou uma foto, ocorre a manipulacao da foto
         if (permissao) {
-
           let foto = await ImagePicker.launchCameraAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
@@ -446,7 +446,7 @@ export default function DeliveryProcess({ navigation, route }) {
     try {
       setButtonLoading(true);
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
-      let data = {data: []};
+      let data = { data: [] };
 
       let lastLocation = await StorageController.buscarPorChave(LAST_LOCATION);
       console.log(lastLocation);
@@ -460,62 +460,60 @@ export default function DeliveryProcess({ navigation, route }) {
         lat: lastLocation?.lat || null,
         long: lastLocation?.long || null,
         event_at: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
-        img: []
+        img: [],
       };
-      
-      if (imageReceipt && imageReceipt.length > 0 ) {
-        for(let i = 0; i < imageReceipt.length; i++) {
+
+      if (imageReceipt && imageReceipt.length > 0) {
+        for (let i = 0; i < imageReceipt.length; i++) {
           const value = imageReceipt[i];
-          if(value) {
+          if (value) {
             console.log("value", value);
-            const imageData = await ImageManipulator.manipulateAsync(value.image, [], {base64: true});
+            const imageData = await ImageManipulator.manipulateAsync(
+              value.image,
+              [],
+              { base64: true }
+            );
             dataObj.img.push({
               uri: imageData.base64 || null,
               name: imageData.name,
               type: imageData.type,
               image_type: "canhoto",
-              documentId: i
+              documentId: i,
             });
           }
         }
       }
 
-      for(let i = 0; i < imagePhoto.length; i++) {
+      for (let i = 0; i < imagePhoto.length; i++) {
         const value = imagePhoto[i];
-        const imageData = await ImageManipulator.manipulateAsync(value, [], {base64: true});
+        const imageData = await ImageManipulator.manipulateAsync(value, [], {
+          base64: true,
+        });
         dataObj.img.push({
           uri: imageData.base64 || null,
           name: imageData.name,
           type: imageData.typem,
-          image_type: "fachada"
+          image_type: "fachada",
         });
       }
 
       data.data.push(dataObj);
       console.log("finalizar2", data);
 
-      if (isConnected) {
-        const response = await api.post(
-          `/mission/${mission.id}/change-status`,
-          data,
-          { headers: { Authorization: `bearer ${token}` } }
-        );
-        if (response) {
-          AsyncStorage.removeItem(IMAGE_RECEIPT);
-          AsyncStorage.removeItem(IMAGE_PHOTO);
+      const response = await EventsController.postEvent(
+        EVENT_TYPE.MISSION_CHANGE_STATUS,
+        token,
+        `/mission/${mission.id}/change-status`,
+        data,
+        mission.id
+      );
 
-          nextAction(mission.id, token);
-          clearInterval(locationInterval);
-        }
-      } else {
-        Alert.alert(
-          "AVISO",
-          "Você precisa estar conectado para finalizar uma entrega/coleta",
-          [{ text: "OK" }],
-          {
-            cancelable: false,
-          }
-        );
+      if (response) {
+        AsyncStorage.removeItem(IMAGE_RECEIPT);
+        AsyncStorage.removeItem(IMAGE_PHOTO);
+
+        nextAction(mission.id, token);
+        clearInterval(locationInterval);
       }
     } catch (error) {
       crashlytics().recordError(error);
@@ -542,13 +540,26 @@ export default function DeliveryProcess({ navigation, route }) {
   const nextAction = async (missionId, token) => {
     try {
       console.log("missionId", missionId);
-      const response = await api.post(
+      // const response = await api.post(
+      //   `/mission/${missionId}/next-step`,
+      //   {},
+      //   { headers: { Authorization: `bearer ${token}` } }
+      // );
+
+      const response = await EventsController.postEvent(
+        EVENT_TYPE.NEXT_STEP,
+        token,
         `/mission/${missionId}/next-step`,
         {},
-        { headers: { Authorization: `bearer ${token}` } }
+        missionId
       );
 
-      console.log("response", response.data.data);
+      reactotron.log("next-step response", response);
+      console.log("local", response.data.data.nextAction === "local")
+      console.log("mission", response.data.data.nextAction === "mission")
+      console.log("missionFailed", response.data.data.nextAction === "missionFailed")
+      console.log("destiny", response.data.data.nextAction === "destiny")
+      console.log("travel", response.data.data.nextAction === "travel")
       if (response) {
         await StorageController.removePorChave(LOCAL_ID);
         setDataFlag(response.data.data);
@@ -610,11 +621,13 @@ export default function DeliveryProcess({ navigation, route }) {
         longitude: lastLocation?.long || null,
       };
 
-      const responseTravel = await api.post(
+      const responseTravel = await EventsController.postEvent(
+        EVENT_TYPE.TRAVEL_CHANGE_STATUS,
+        tokenKey,
         `/travel/${travelId}/change-status`,
         objSend,
-        { headers: { Authorization: `bearer ${tokenKey}` } }
-      );
+        travelId
+      )
       if (responseTravel) {
         hideModalInsuccess();
         hideDestine();
@@ -721,11 +734,9 @@ export default function DeliveryProcess({ navigation, route }) {
 
       console.log("data", report);
       console.log("localId", localId);
-      const response = await api.put(
-        `/document/${currentNfReport}`,
-        report,
-        { headers: { Authorization: `bearer ${tokenKey}` } }
-      );
+      const response = await api.put(`/document/${currentNfReport}`, report, {
+        headers: { Authorization: `bearer ${tokenKey}` },
+      });
 
       if (response.data.success) {
         let nf_images = imageReceipt;
@@ -742,9 +753,14 @@ export default function DeliveryProcess({ navigation, route }) {
     } catch (error) {
       crashlytics().recordError(error);
       if (error.response) {
-        Alert.alert("Atenção", error.response.data.errors[0], [{ text: "OK" }], {
-          cancelable: false,
-        });
+        Alert.alert(
+          "Atenção",
+          error.response.data.errors[0],
+          [{ text: "OK" }],
+          {
+            cancelable: false,
+          }
+        );
       } else {
         Alert.alert("Atenção", error.message, [{ text: "OK" }], {
           cancelable: false,
@@ -782,8 +798,8 @@ export default function DeliveryProcess({ navigation, route }) {
       data: {
         localId: destinyId,
         destiny: true,
-      }
-    }
+      },
+    };
     await StorageController.salvarPorChave(DESTINY_PAGE, destinyPage);
 
     navigation.dispatch(

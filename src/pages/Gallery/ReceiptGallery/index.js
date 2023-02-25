@@ -28,7 +28,6 @@ export default function ReceiptGallery({ navigation, route }) {
       }
       setImagesReceipt(images);
       let data = await route.params;
-      console.log('DATA DATA', data);
       setData(data);
     } catch (error) {
       crashlytics().recordError(error);

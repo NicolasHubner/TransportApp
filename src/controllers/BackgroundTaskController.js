@@ -13,6 +13,7 @@ import * as BackgroundFetch from "expo-background-fetch";
 import StorageController from "./StorageController";
 import { LOCAL_COORD } from "../constants/constants";
 import crashlytics from '@react-native-firebase/crashlytics';
+import { EventsController } from "./EventsController";
 
 LogBox.ignoreLogs(["Setting a timer"]);
 
@@ -42,7 +43,10 @@ TaskManager.defineTask(LOCATION_TRACKING, async ({ data, error }) => {
     saveLocations(lat, long, speed, accuracy, altitude, altitudeAccuracy, direction); //adicao de parametros
     showNotification(lat, long);
     
-    setTimeout(() => LocationController.sendLocationsTask(), 3000);
+    setTimeout(() => { 
+      LocationController.sendLocationsTask();
+      EventsController.syncEvents();
+    }, 1000);
   }
 });
 

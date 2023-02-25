@@ -10,7 +10,7 @@ import { View, Text, TextInput, StyleSheet, Alert } from "react-native";
 import StorageController from "../../controllers/StorageController";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import RNPickerSelect from "react-native-picker-select";
-import { TOKEN_KEY, LAST_LOCATION } from "../../constants/constants";
+import { TOKEN_KEY, LAST_LOCATION, EVENT_TYPE } from "../../constants/constants";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { Button } from "react-native-paper";
@@ -21,6 +21,7 @@ import crashlytics from '@react-native-firebase/crashlytics';
 import CameraController from "../../controllers/CameraController";
 import { TravelController } from "../../controllers/TravelController";
 import reactotron from "reactotron-react-native";
+import { EventsController } from "../../controllers/EventsController";
 
 export default function ModalInsuccess({ func, func2, missionId }) {
   const [motivo, setMotivo] = useState("0");
@@ -152,12 +153,15 @@ export default function ModalInsuccess({ func, func2, missionId }) {
       }
 
       data.data.push(objData);
-      console.log("request", JSON.stringify(data));
-      const response = await api.post(
-        `/mission/${missionId}/change-status`,
+      console.log("send insucesso", JSON.stringify(data));
+
+      const response = await EventsController.postEvent(
+        EVENT_TYPE.MISSION_CHANGE_STATUS, 
+        token, 
+        `/mission/${missionId}/change-status`, 
         data,
-        { headers: { Authorization: `bearer ${token}` } }
-      );
+        missionId);
+
       console.log(response.data);
       if (response.data.success) {
         func();

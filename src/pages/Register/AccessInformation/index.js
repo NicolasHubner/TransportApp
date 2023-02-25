@@ -169,7 +169,6 @@ export default function AccessInformation({ navigation }) {
       await schema.validate(register, { abortEarly: false });
      const response = await api.post("/user/register", register); //...23.12.2022
      
-      // console.log(response.data);
       if (response.data.success) {
         await AsyncStorage.removeItem(REGISTER);
         Alert.alert("", "Cadastro realizado com sucesso", [{ text: "OK" }], {

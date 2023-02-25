@@ -16,6 +16,7 @@ import {
   MERGED_LOCALS,
   LAST_LOCATION,
   DESTINY_PAGE,
+  EVENT_TYPE,
 } from "../../constants/constants";
 import StorageController from "../../controllers/StorageController";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,6 +32,7 @@ import { format } from "date-fns";
 import styles from "./styles";
 import crashlytics from '@react-native-firebase/crashlytics';
 import { TravelController } from "../../controllers/TravelController";
+import { EventsController } from "../../controllers/EventsController";
 
 export default function Locals({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -150,10 +152,12 @@ export default function Locals({ navigation, route }) {
         longitude: lastLocation?.long,
       };
 
-      const response = await api.post(
+      const response = await EventsController.postEvent(
+        EVENT_TYPE.TRAVEL_CHANGE_STATUS,
+        token,
         `/travel/${travel}/change-status`,
         objSend,
-        { headers: { Authorization: `bearer ${token}` } }
+        travel
       );
       if (response.data.success) {
         navigation.navigate("TripDetails", travel);

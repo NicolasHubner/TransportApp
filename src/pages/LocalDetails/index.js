@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, Pressable, Alert } from "react-native";
-import { APP_NAVIGATION, LOCAL_ID, TOKEN_KEY } from "../../constants/constants";
+import { APP_NAVIGATION, EVENT_TYPE, LOCAL_ID, TOKEN_KEY } from "../../constants/constants";
 import StorageController from "../../controllers/StorageController";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -11,8 +11,9 @@ import { Button } from "react-native-paper";
 // import colors from "../../utils/colors";
 import { api } from "../../services/api";
 import styles from "./styles";
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from "@react-native-firebase/crashlytics";
 import { TravelController } from "../../controllers/TravelController";
+import { EventsController } from "../../controllers/EventsController";
 
 export default function LocalDetails({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -45,11 +46,12 @@ export default function LocalDetails({ navigation, route }) {
       });
       setLocal(id);
       const response = await TravelController.getLocalNavigation(token, id);
-      console.log(response);
       if (response) {
         setLocationType(response.data.location_type_description);
         if (response.data.location_type_description === "DESTINO") {
-          const responseDestine = await TravelController.checkLocalsPendent(response.data.travel_id);
+          const responseDestine = await TravelController.checkLocalsPendent(
+            response.data.travel_id
+          );
           console.log(responseDestine);
           if (responseDestine) {
             setGoToDestine(true);
@@ -92,13 +94,17 @@ export default function LocalDetails({ navigation, route }) {
         if (goToDestine) {
           const status = {
             status: "EM ANDAMENTO",
-            uuid_group: true
+            uuid_group: true,
           };
-          const response = await api.post(
+
+          const response = await EventsController.postEvent(
+            EVENT_TYPE.LOCAL_CHANGE_STATUS,
+            token,
             `/local/${data.id}/change-status`,
             status,
-            { headers: { Authorization: `bearer ${token}` } }
+            data.id
           );
+
           if (response) {
             await StorageController.salvarPorChave(LOCAL_ID, data.id);
             goNavigation();
@@ -116,13 +122,17 @@ export default function LocalDetails({ navigation, route }) {
       } else {
         const status = {
           status: "EM ANDAMENTO",
-          uuid_group: true
+          uuid_group: true,
         };
-        const response = await api.post(
+
+        const response = await EventsController.postEvent(
+          EVENT_TYPE.LOCAL_CHANGE_STATUS,
+          token,
           `/local/${data.id}/change-status`,
           status,
-          { headers: { Authorization: `bearer ${token}` } }
+          data.id
         );
+
         if (response) {
           await StorageController.salvarPorChave(LOCAL_ID, data.id);
           goNavigation();

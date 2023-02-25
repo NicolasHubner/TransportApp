@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, Image, Pressable, Modal, Alert } from "react-native";
 import StorageController from "../../controllers/StorageController";
-import { TOKEN_KEY, TRAVEL_ID, LAST_LOCATION } from "../../constants/constants";
+import { TOKEN_KEY, TRAVEL_ID, LAST_LOCATION, EVENT_TYPE } from "../../constants/constants";
 import LocationController from "../../controllers/LocationController";
 import ModalOrigin from "../../components/Modals/ModalOrigin";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import styles from "./styles";
 import crashlytics from "@react-native-firebase/crashlytics";
 import { TravelController } from "../../controllers/TravelController";
+import { EventsController } from "../../controllers/EventsController";
 
 export default function TripDetails({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -121,10 +122,13 @@ export default function TripDetails({ navigation, route }) {
         latitude: lastLocate.lat,
         longitude: lastLocate.long,
       };
-      const response = await api.post(
+
+      const response = await EventsController.postEvent(
+        EVENT_TYPE.TRAVEL_CHANGE_STATUS,
+        token,
         `/travel/${travelId}/change-status`,
         objSend,
-        { headers: { Authorization: `bearer ${token}` } }
+        travelId
       );
 
       if (response) {
@@ -183,11 +187,15 @@ export default function TripDetails({ navigation, route }) {
         latitude: lastLocate.lat,
         longitude: lastLocate.long,
       };
-      const response = await api.post(
+
+      const response = await EventsController.postEvent(
+        EVENT_TYPE.TRAVEL_CHANGE_STATUS,
+        token,
         `/travel/${travelId}/change-status`,
         objSend,
-        { headers: { Authorization: `bearer ${token}` } }
+        travelId
       );
+
       if (response) {
         navigation.navigate("Locals", data.id);
       }

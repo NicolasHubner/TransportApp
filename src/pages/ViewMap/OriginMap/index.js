@@ -21,6 +21,7 @@ import StorageController from "../../../controllers/StorageController";
 import {
   APP_NAVIGATION,
   ARRIVAL_NOTIFICATION,
+  EVENT_TYPE,
   LOCAL_COORD,
   TOKEN_KEY,
 } from "../../../constants/constants";
@@ -33,11 +34,12 @@ import Loading from "../../../components/Loading";
 import { Button } from "react-native-paper";
 import { Marker } from "react-native-maps";
 import MapView from "react-native-maps";
-import {api} from "../../../services/api";
+import { api } from "../../../services/api";
 import { format } from "date-fns";
 import styles from "./styles";
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from "@react-native-firebase/crashlytics";
 import { TravelController } from "../../../controllers/TravelController";
+import { EventsController } from "../../../controllers/EventsController";
 
 // COMPONENTE DO MAPA DO LOCAL DE ORIGEM
 export default function ExpandedMap({ navigation, route }) {
@@ -92,7 +94,7 @@ export default function ExpandedMap({ navigation, route }) {
 
   async function init() {
     try {
-      // PEGA E GUARDA AS COORDENADAS DO LOCAL DE ORIGEM 
+      // PEGA E GUARDA AS COORDENADAS DO LOCAL DE ORIGEM
       let localCoords = await StorageController.buscarPorChave(LOCAL_COORD);
       localCoords = JSON.parse(JSON.parse(localCoords));
       console.log(localCoords);
@@ -108,11 +110,11 @@ export default function ExpandedMap({ navigation, route }) {
       }
       // let map = await StorageController.buscarPorChave(APP_NAVIGATION);
 
-      // PEGA E GUARDA O TOKEN DE AUTENTICAÇÃO PARA FAZER AS REQUISIÇÕES 
+      // PEGA E GUARDA O TOKEN DE AUTENTICAÇÃO PARA FAZER AS REQUISIÇÕES
       const tokenKey = await StorageController.buscarPorChave(TOKEN_KEY);
       setToken(tokenKey);
 
-      // PEGA E GUARDA OS PAREMETROS DA ROTA COMO 'TRAVEL', 'PLATFORM' E 'LOCAL' 
+      // PEGA E GUARDA OS PAREMETROS DA ROTA COMO 'TRAVEL', 'PLATFORM' E 'LOCAL'
       const params = await route.params;
       let idLocal = "";
       if (params?.local) {
@@ -127,7 +129,10 @@ export default function ExpandedMap({ navigation, route }) {
       // }
 
       // FAZ A REQUISIÇÃO PARA PEGAR OS DADOS DO LOCAL DE ORIGEM
-      const response = await TravelController.getLocalNavigation(tokenKey, idLocal);
+      const response = await TravelController.getLocalNavigation(
+        tokenKey,
+        idLocal
+      );
 
       if (response) {
         setTravel(response.data.travel_id);
@@ -172,7 +177,6 @@ export default function ExpandedMap({ navigation, route }) {
 
   const interval = async () => {
     try {
-
       // CALCULA A DISTÂNCIA DO LOCAL ATUAL E DO LOCAL DA ORIGEM
       const newLocation = await getLocation();
       if (newLocation && destineLocation) {
@@ -184,6 +188,8 @@ export default function ExpandedMap({ navigation, route }) {
         );
         setDistance(arrivedDestine);
         setAtualLocation(newLocation);
+        console.log(`ORIGEM - Destino: ${destineLocation.latitude} ${destineLocation.longitude}`);
+        console.log(`ORIGEM - Distancia: ${arrivedDestine}`);
 
         // let endereco = await LocationController.buscaEndereco(
         //   newLocation.latitude,
@@ -203,22 +209,26 @@ export default function ExpandedMap({ navigation, route }) {
             event_at: format(new Date(), "yyyy-MM-dd HH:mm:ss.SSS"),
           };
 
-          console.log("event2", event);
-
-          // FAZ A REQUISIÇÃO DE MUDAR O STATUS DA VIAGEM PARA CONCLUIDO 
-          const response = await api.post(
+          // FAZ A REQUISIÇÃO DE MUDAR O STATUS DA VIAGEM PARA CONCLUIDO
+          const response = await EventsController.postEvent(
+            EVENT_TYPE.LOCAL_CHANGE_STATUS,
+            token,
             `/local/${local}/change-status`,
-            { status: "CONCLUIDO", uuid_group: true }, {headers: { Authorization: `bearer ${token}` }}
+            { status: "CONCLUIDO", uuid_group: true },
+            local
           );
+
           if (response) {
             //FAZ A REQUISIÇÃO DE ADD O EVENTO DE CHEGADA AO LOCAL DE ORIGEM
-            const responseEvent = await api.post(
+            const responseEvent = await EventsController.postEvent(
+              EVENT_TYPE.NO_ACTION,
+              token,
               `/travel/event/${travel}`,
-              event, {headers: { authorization: `bearer ${token}` }}
-            );
+              event,
+              0
+            )
             if (responseEvent) {
               // MOSTRA O AVISO DE CHEGADA AO LOCAL PARA O USUÁRIO
-              console.log("evento", responseEvent.data);
               showModalArrivedOrigin();
               await NotificationsController.originNotification();
             }
@@ -230,7 +240,7 @@ export default function ExpandedMap({ navigation, route }) {
       }
     } catch (error) {
       crashlytics().recordError(error);
-      console.log('deu erro aqui', error.response.data);
+      console.log("deu erro aqui", error.response.data);
     }
   };
 
@@ -239,7 +249,6 @@ export default function ExpandedMap({ navigation, route }) {
     setTimeout(() => {
       interval();
     }, 10000);
-
   }, [refresh]);
 
   //roda o init sempre que navegar para esta tela
@@ -275,7 +284,7 @@ export default function ExpandedMap({ navigation, route }) {
     }
   }
 
-  // FUNÇÃO DE REDIRECIONAMENTO PARA A TELA DE MISSÕES 
+  // FUNÇÃO DE REDIRECIONAMENTO PARA A TELA DE MISSÕES
   const navigationMissions = async () => {
     await StorageController.removePorChave(ARRIVAL_NOTIFICATION);
     await StorageController.removePorChave(LOCAL_COORD);
@@ -383,9 +392,7 @@ export default function ExpandedMap({ navigation, route }) {
           </View>
         )}
         <View style={styles.footer}>
-          <Footer
-            navigation={navigation}
-          />
+          <Footer navigation={navigation} />
         </View>
         {/* {!newLocalVisible && activeDestineChange && (
           <>
@@ -467,7 +474,9 @@ export default function ExpandedMap({ navigation, route }) {
                 contentStyle={styles.button}
                 mode="contained"
                 labelStyle={{ color: "white" }}
-                onPress={() => {hideModalArrivedOrigin(), navigation.popToTop()}}
+                onPress={() => {
+                  hideModalArrivedOrigin(), navigation.popToTop();
+                }}
               >
                 ir para a lista de locais
               </Button>

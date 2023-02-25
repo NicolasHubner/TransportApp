@@ -12,7 +12,7 @@ import StorageController from "../../controllers/StorageController";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ModalLogoff from "../../components/Modals/ModalLogoff";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { TOKEN_KEY, LAST_LOCATION } from "../../constants/constants";
+import { TOKEN_KEY, LAST_LOCATION, EVENT_TYPE } from "../../constants/constants";
 import ListItens from "../../components/ListItens";
 import Loading from "../../components/Loading";
 import AuthContext from "../../contexts/auth";
@@ -22,7 +22,8 @@ import { Button } from "react-native-paper";
 import { api } from "../../services/api";
 import { format } from "date-fns";
 import styles from "./styles";
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from "@react-native-firebase/crashlytics";
+import { EventsController } from "../../controllers/EventsController";
 
 export default function Insuccess({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -111,10 +112,13 @@ export default function Insuccess({ navigation, route }) {
         latitude: lastLocation?.lat,
         longitude: lastLocation?.long,
       };
-      const response = await api.post(
+
+      const response = await EventsController.postEvent(
+        EVENT_TYPE.TRAVEL_CHANGE_STATUS,
+        token,
         `/travel/${trip}/change-status`,
         objSend,
-        { headers: { Authorization: `bearer ${token}` } }
+        trip
       );
       if (response) {
         navigation.navigate("Trips");

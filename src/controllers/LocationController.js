@@ -122,11 +122,8 @@ function LocationController() {
   const sendLocationsTask = async () => {
     try {
       let arrayLocations = await LocationDao.getTop(5);
-      console.log("getLocations", arrayLocations);
+      arrayLocations = JSON.parse(JSON.stringify(arrayLocations));
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
-      let localId = await StorageController.buscarPorChave(LOCAL_ID);
-      let travelId = await StorageController.buscarPorChave(TRAVEL_ID);
-      let userId = await StorageController.buscarPorChave(USER_ID);
 
       let dataEnv = false;
 

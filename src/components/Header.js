@@ -16,6 +16,7 @@ import {
   TOKEN_KEY,
   TRAVEL_ID,
   LAST_LOCATION,
+  EVENT_TYPE,
 } from "../constants/constants";
 import AuthContext from "../contexts/auth";
 import { StatusBar } from "expo-status-bar";
@@ -27,8 +28,9 @@ import ModalReopen from "./Modals/ModalReopen";
 import ModalLogoff from "./Modals/ModalLogoff";
 import { expo } from "../../app.config.json";
 import { format } from "date-fns";
-import NetInfo from '@react-native-community/netinfo';
-import crashlytics from '@react-native-firebase/crashlytics';
+import NetInfo from "@react-native-community/netinfo";
+import crashlytics from "@react-native-firebase/crashlytics";
+import { EventsController } from "../controllers/EventsController";
 
 export default function Header({
   navigation,
@@ -39,7 +41,7 @@ export default function Header({
   travelId,
   localRegress,
   returnAlert,
-  destiny
+  destiny,
 }) {
   const [logoffVisible, setLogoffVisible] = useState(false);
   const [navigationVisible, setNavigationVisible] = useState(false);
@@ -61,7 +63,7 @@ export default function Header({
 
   // SETA O VALOR DO TOKEN
   async function init() {
-    crashlytics().log('Updating user count.');
+    crashlytics().log("Updating user count.");
     try {
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
       setTokenKey(token);
@@ -72,7 +74,7 @@ export default function Header({
   }
 
   useEffect(() => {
-    getInternetStatus()
+    getInternetStatus();
     init();
   }, []);
 
@@ -93,11 +95,15 @@ export default function Header({
       // const token = await StorageController.buscarPorChave(TOKEN_KEY);
       await StorageController.removePorChave(LOCAL_COORD);
       await StorageController.removePorChave(ARRIVAL_NOTIFICATION);
-      const response = await api.post(
+
+      const response = await EventsController.postEvent(
+        EVENT_TYPE.LOCAL_CHANGE_STATUS,
+        tokenKey,
         `/local/${id}/change-status`,
         { status: "PENDENTE", uuid_group: true },
-        { headers: { Authorization: `bearer ${tokenKey}` } }
+        id
       );
+
       if (response.data.success) {
         await StorageController.removePorChave(LOCAL_ID);
         if (regress === "LocalDetails") {
@@ -139,11 +145,14 @@ export default function Header({
         longitude: lastLocation?.long,
       };
 
-      const response = await api.post(
+      const response = await EventsController.postEvent(
+        EVENT_TYPE.TRAVEL_CHANGE_STATUS,
+        token,
         `/travel/${id}/change-status`,
         objSend,
-        { headers: { Authorization: `bearer ${token}` } }
+        id
       );
+
       if (response.data.success) {
         await StorageController.removePorChave(TRAVEL_ID);
         navigation.navigate("TripDetails", id);
@@ -184,30 +193,40 @@ export default function Header({
   const functionReturn = async () => {
     if (!returnAlert) {
       if (regress) {
-        showModals()
+        showModals();
       } else {
-        (parameter ? navigation.navigate(rota, parameter) : navigation.navigate(rota))
+        parameter
+          ? navigation.navigate(rota, parameter)
+          : navigation.navigate(rota);
       }
     } else {
-      Alert.alert("Aviso", "Não é possível retornar após ter inciado a entrega/coleta.\nFinalize ou registre um insucesso", [{ text: "OK" }], {
-        cancelable: false,
-      });
+      Alert.alert(
+        "Aviso",
+        "Não é possível retornar após ter inciado a entrega/coleta.\nFinalize ou registre um insucesso",
+        [{ text: "OK" }],
+        {
+          cancelable: false,
+        }
+      );
     }
-  }
+  };
 
   const getInternetStatus = () => {
     try {
-      NetInfo.addEventListener(networkState => {
+      NetInfo.addEventListener((networkState) => {
         console.log("Connection type - ", networkState?.type);
         console.log("Is connected? - ", networkState?.isConnected);
-        console.log("isInternetReachable? - ", networkState?.isInternetReachable);
+        console.log(
+          "isInternetReachable? - ",
+          networkState?.isInternetReachable
+        );
         setNoNetwork(!networkState?.isInternetReachable);
       });
     } catch (error) {
       crashlytics().recordError(error);
       console.log("getInternetStatus:err", error);
-    } 
-  }
+    }
+  };
 
   return (
     <>
@@ -237,12 +256,12 @@ export default function Header({
           <Text style={{ color: "#ababab" }}>v {expo.version}</Text>
         </View>
       </View>
-      {noNetwork && 
-      <View style={styles.internetStatusNotification} >
+      {noNetwork && (
+        <View style={styles.internetStatusNotification}>
           <Text style={styles.internetStatusNotificationText}>Sem conexão</Text>
         </View>
-        }
-      
+      )}
+
       <Modal transparent={true} visible={logoffVisible} dismissable={false}>
         <ModalLogoff
           hideModal={hideModalLogoff}
@@ -296,10 +315,10 @@ const styles = StyleSheet.create({
   },
 
   goBack: {
-    width: '15%',
-    height: '100%',
+    width: "15%",
+    height: "100%",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
 
   stretch: {
@@ -310,15 +329,15 @@ const styles = StyleSheet.create({
   },
   internetStatusNotification: {
     height: 20,
-    width: '100%',
-    backgroundColor: 'red',
+    width: "100%",
+    backgroundColor: "red",
     justifyContent: "center",
     textAlign: "center",
-    zIndex: 1000
+    zIndex: 1000,
   },
   internetStatusNotificationText: {
     textAlign: "center",
-    color: '#fff',
-    fontWeight: 'bold',
-  }
+    color: "#fff",
+    fontWeight: "bold",
+  },
 });

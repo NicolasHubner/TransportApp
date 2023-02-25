@@ -15,6 +15,7 @@ import {
   TOKEN_KEY,
   LOCAL_COORD,
   LAST_LOCATION,
+  EVENT_TYPE,
 } from "../../constants/constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import StorageController from "../../controllers/StorageController";
@@ -29,8 +30,9 @@ import { api } from "../../services/api";
 import Checkbox from "expo-checkbox";
 import { format } from "date-fns";
 import styles from "./styles";
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from "@react-native-firebase/crashlytics";
 import { TravelController } from "../../controllers/TravelController";
+import { EventsController } from "../../controllers/EventsController";
 
 export default function SelectNavigation({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -42,7 +44,7 @@ export default function SelectNavigation({ navigation, route }) {
   const [loading, setLoading] = useState(false);
   const [reopenVisible, setReopenVisible] = useState(false);
   const [navigationRoutes, setNavigationRoutes] = useState({});
-  const [originType, setOriginType] = useState('');
+  const [originType, setOriginType] = useState("");
   const [map, setMap] = useState();
   const [destiny, setDestiny] = useState(false);
   const [travel, setTravel] = useState(null);
@@ -160,11 +162,15 @@ export default function SelectNavigation({ navigation, route }) {
     try {
       setLoading(true);
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
-      const response = await api.post(
+
+      const response = await EventsController.postEvent(
+        EVENT_TYPE.LOCAL_CHANGE_STATUS,
+        token,
         `/local/${local}/change-status`,
         { status: "PENDENTE", uuid_group: true },
-        { headers: { Authorization: `bearer ${token}` } }
+        local
       );
+
       if (response.data.success) {
         navigation.navigate("LocalDetails", local);
       }
@@ -202,10 +208,12 @@ export default function SelectNavigation({ navigation, route }) {
         longitude: lastLocation?.long,
       };
 
-      const response = await api.post(
+      const response = await EventsController.postEvent(
+        EVENT_TYPE.TRAVEL_CHANGE_STATUS,
+        token,
         `/travel/${travel}/change-status`,
         objSend,
-        { headers: { Authorization: `bearer ${token}` } }
+        travel
       );
       if (response.data.success) {
         navigation.navigate("TripDetails", travel);
@@ -267,7 +275,7 @@ export default function SelectNavigation({ navigation, route }) {
         Linking.openURL(navigationRoutes.apple_maps);
       }
 
-      if (travel && originType === 'ORIGEM') {
+      if (travel && originType === "ORIGEM") {
         navigation.navigate("OriginMap", params);
       } else {
         navigation.navigate("ExpandedMap", params);

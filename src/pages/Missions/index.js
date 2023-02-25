@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ModalReopen from "../../components/Modals/ModalReopen";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
+  EVENT_TYPE,
   IMAGE_PHOTO,
   IMAGE_RECEIPT,
   MERGED_LOCALS,
@@ -27,6 +28,7 @@ import { api } from "../../services/api";
 import styles from "./styles";
 import crashlytics from "@react-native-firebase/crashlytics";
 import { TravelController } from "../../controllers/TravelController";
+import { EventsController } from "../../controllers/EventsController";
 
 export default function Missions({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -122,11 +124,14 @@ export default function Missions({ navigation, route }) {
     try {
       setLoading(true);
       const token = await StorageController.buscarPorChave(TOKEN_KEY);
-      const response = await api.post(
+      const response = await EventsController.postEvent(
+        EVENT_TYPE.LOCAL_CHANGE_STATUS,
+        token,
         `/local/${localId}/change-status`,
         { status: "PENDENTE", uuid_group: true },
-        { headers: { Authorization: `bearer ${token}` } }
+        localId
       );
+
       if (response.data.success) {
         navigation.navigate("Locals", travelId);
       }

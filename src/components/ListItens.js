@@ -18,7 +18,6 @@ export default function ListItens({
   func,
 }) {
   let local = mission;
-  console.log("mission not confirmed", mission);
   let contact = null;
 
   if (local?.contact) {
@@ -28,7 +27,7 @@ export default function ListItens({
   const [modalContatoVisible, setModalContatoVisible] = useState(false);
   const [modalVisitMission, setModalVisitMission] = useState(false);
 
-  const showModalVisit = () => setModalVisitMission(true);
+  const showModalVisit = () => { console.log('chamou aqui'); hideModalContato(); setModalVisitMission(true) };
   const hideModalVisit = () => setModalVisitMission(false);
 
   const showModalContato = () => setModalContatoVisible(true);

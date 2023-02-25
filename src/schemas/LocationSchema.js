@@ -9,7 +9,7 @@ export const LocationsSchema = {
   name: "Locations",
   primaryKey: "_id",
   properties: {
-    _id: { type: "objectId", default: () => new Realm.BSON.ObjectId() },
+    _id: "string",
     lat: { type: "double", default: 0.0 },
     lng: { type: "double", default: 0.0 },
     speed: { type: "double", default: 0.0 },

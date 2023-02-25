@@ -10,13 +10,14 @@ import {
 } from "react-native";
 import StorageController from "../../controllers/StorageController";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { LAST_LOCATION } from "../../constants/constants";
+import { EVENT_TYPE, LAST_LOCATION } from "../../constants/constants";
 import { Button, RadioButton } from "react-native-paper";
 import colors from "../../utils/colors";
 import { api } from "../../services/api";
 import { format } from "date-fns";
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from "@react-native-firebase/crashlytics";
 import reactotron from "reactotron-react-native";
+import { EventsController } from "../../controllers/EventsController";
 
 export default function ModalContact({
   hideModal,
@@ -33,19 +34,16 @@ export default function ModalContact({
   let contactPhones = [];
 
   if (local?.contact) {
-    if(local?.contact.length > 0)
-      contact = local?.contact[0];
-    else
-      contact = local?.contact;
+    if (local?.contact.length > 0) contact = local?.contact[0];
+    else contact = local?.contact;
   }
 
-  reactotron.log(local.contact[0]);
   if (
     contact &&
-    ( contact?.cell_phone ||
-    contact?.telephone_1 ||
-    contact?.telephone_2 ||
-    contact?.telephone_3 )
+    (contact?.cell_phone ||
+      contact?.telephone_1 ||
+      contact?.telephone_2 ||
+      contact?.telephone_3)
   ) {
     if (contact.cell_phone) {
       contactPhones.push(contact.cell_phone);
@@ -80,9 +78,17 @@ export default function ModalContact({
   async function confirmMission() {
     setSaveIsLoading(true);
     try {
-      const response = await api.put(
-        `/mission/${local.id}/confirmed`, {},
-        { headers: { Authorization: `bearer ${token}` } }
+      // const response = await api.put(
+      //   `/mission/${local.id}/confirmed`, {},
+      //   { headers: { Authorization: `bearer ${token}` } }
+      // );
+
+      const response = await EventsController.postEvent(
+        EVENT_TYPE.MISSION_CONFIRMED,
+        token,
+        `/mission/${local.id}/confirmed`,
+        {},
+        local.id
       );
       if (response) {
         if (func) {
@@ -115,28 +121,36 @@ export default function ModalContact({
         lastLocation = JSON.parse(JSON.parse(lastLocation));
       }
 
-      let data = {data:[]};
+      let data = { data: [] };
       data.data.push({
         status: "pending",
         haveImg: "false",
         lat: lastLocation?.lat,
         long: lastLocation?.long,
-        event_at: format(new Date(), "yyyy-MM-dd HH:mm:ss")
-      })
+        event_at: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
+      });
 
-      const response = await api.post(
+      const response = await EventsController.postEvent(
+        EVENT_TYPE.MISSION_CHANGE_STATUS,
+        token,
         `/mission/${local.id}/change-status`,
         data,
-        { headers: { Authorization: `bearer ${token}` } }
+        local.id
       );
 
-      const responseLocal = await api.post(
+      const responseLocal = await EventsController.postEvent(
+        EVENT_TYPE.LOCAL_CHANGE_STATUS,
+        token,
         `/local/${local.travel_local_id}/change-status`,
         { status: "EM ANDAMENTO", uuid_group: false },
-        { headers: { Authorization: `bearer ${token}` } }
+        local.travel_local_id
       );
-      if (response.data.success == "true") {
-        if (responseLocal.data.success == "true") {
+
+      if (response.data.success == "true" || response.data.success) {
+        if (
+          responseLocal.data.success == "true" ||
+          responseLocal.data.success
+        ) {
           if (func2) {
             func2();
           }

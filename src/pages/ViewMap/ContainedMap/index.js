@@ -127,7 +127,6 @@ export default function ContainedMap({ navigation, route }) {
           };
           markers.push(obj);
         });
-        // console.log(markers);
         setMarkers(markers);
       } else if (responseLocal) {
         // SE A TELA ANTERIOR FOI A "LOCALDETAILS"
@@ -168,12 +167,11 @@ export default function ContainedMap({ navigation, route }) {
           longitudeDelta: 0.02,
         });
 
-        // console.log(markers);
         setMarkers(markers);
       }
     } catch (error) {
       crashlytics().recordError(error);
-      console.log("aaa", error);
+      console.log(error);
       // TRATAMENTO DE ERROS
       if (error.response) {
         Alert.alert("Aviso", error.response.data.message, [{ text: "OK" }], {

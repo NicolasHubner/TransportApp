@@ -14,6 +14,7 @@ import colors from "../../utils/colors";
 import { api } from "../../services/api";
 import styles from "./styles";
 import crashlytics from '@react-native-firebase/crashlytics';
+import { TravelController } from "../../controllers/TravelController";
 
 export default function ContactLocals({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -39,10 +40,12 @@ export default function ContactLocals({ navigation, route }) {
       setToken(token);
       setRote(params.rote);
 
-      const response = await api.get(
-        `/travel/locals/${params.travel_id}/not-confirmed`,
-        { headers: { Authorization: `bearer ${token}` } }
-      );
+      // const response = await api.get(
+      //   `/travel/locals/${params.travel_id}/not-confirmed`,
+      //   { headers: { Authorization: `bearer ${token}` } }
+      // );
+      const response = await TravelController.getLocalsNotConfirmed(params.travel_id);
+      
       if (response) {
         console.log("SUCCESS CONTACT -->  ", response.data.data);
         setData(response.data.data);

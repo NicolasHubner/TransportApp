@@ -1,5 +1,6 @@
 import reactotron from "reactotron-react-native";
 import { Dao } from "../daos/Dao";
+import { EventDao } from "../daos/EventDao";
 import { TravelContactDao } from "../daos/TravelContactDao";
 import { TravelDao } from "../daos/TravelDao";
 import { TravelDocumentDao } from "../daos/TravelDocumentDao";
@@ -9,34 +10,37 @@ import { TravelMissionDao } from "../daos/TravelMissionDao";
 import { api } from "../services/api";
 
 export class TravelController {
-  
   static async getTravels(token) {
     let outError = null;
-    try {
-      const response = await api.get("/travels", {
-        headers: { Authorization: `bearer ${token}` },
-      });
+    const testEvent = await EventDao.getTop(1);
 
-      if (response.data.success && response.data.data.length > 0) {
-        const context = await Dao.getContext();
-        context.beginTransaction();
-        context.deleteAll();
-        context.commitTransaction();
-        
-        for (element of response.data.data ) {
-          await TravelController.getTravel(token, element.id);
+    if (testEvent.length == 0) {
+      try {
+        const response = await api.get("/travels", {
+          headers: { Authorization: `bearer ${token}` },
+        });
+
+        if (response.data.success && response.data.data.length > 0) {
+          const context = await Dao.getContext();
+          context.beginTransaction();
+          context.deleteAll();
+          context.commitTransaction();
+
+          for (element of response.data.data) {
+            await TravelController.getTravel(token, element.id);
+          }
         }
+      } catch (error) {
+        console.log("getTravels", error);
+        outError = error;
       }
-    } catch (error) {
-      console.log("getTravels", error);
-      outError = error;
+
+      await this.getInsuccessType(token, 1);
+      await this.getInsuccessType(token, 2);
     }
 
-    await this.getInsuccessType(token, 1);
-    await this.getInsuccessType(token, 2);
-    
     const output = await TravelDao.getAll();
-    
+
     if (output.length == 0 && outError != null) {
       throw outError;
     }
@@ -45,37 +49,38 @@ export class TravelController {
   }
 
   static async getTravel(token, id) {
-    const response = await api.get(`/travel/${id}`, {
-      headers: { Authorization: `bearer ${token}` },
-    });
+    const testEvent = await EventDao.getTop(1);
 
-    if (response.data.success && response.data.data) {
-      const travel = response.data.data;
-      await TravelDao.createOrUpdate(travel);
+    if (testEvent.length == 0) {
+      const response = await api.get(`/travel/${id}`, {
+        headers: { Authorization: `bearer ${token}` },
+      });
 
-      console.log(travel.locals.length);
-      console.log(JSON.stringify(travel.locals));
+      if (response.data.success && response.data.data) {
+        const travel = response.data.data;
+        await TravelDao.createOrUpdate(travel);
 
-      for (const local of travel.locals) {
-        
-        local.merged = local.merged?.toString();
-        local.icon = travel.icon;
-        await TravelLocalDao.createOrUpdate(local);
+        console.log(travel.locals.length);
 
-        for (const mission of local.missions) {
-          await TravelMissionDao.createOrUpdate(mission);
+        for (const local of travel.locals) {
+          local.merged = local.merged?.toString();
+          local.icon = travel.icon;
+          await TravelLocalDao.createOrUpdate(local);
+
+          for (const mission of local.missions) {
+            await TravelMissionDao.createOrUpdate(mission);
+          }
+
+          for (const document of local.documents) {
+            await TravelDocumentDao.createOrUpdate(document);
+          }
+
+          for (const contact of local.contacts) {
+            await TravelContactDao.createOrUpdate(contact);
+          }
         }
-
-        for (const document of local.documents) {
-          await TravelDocumentDao.createOrUpdate(document);
-        }
-
-        for (const contact of local.contacts) {
-          await TravelContactDao.createOrUpdate(contact);
-        }
-      }   
+      }
     }
-    
   }
 
   static async getTravelsDetails(token, id) {
@@ -152,18 +157,14 @@ export class TravelController {
     }
 
     result.data = await TravelLocalDao.findById(id);
-    console.log("TravelLocalDao.findById(id)", id, JSON.stringify(result.data));
-    const idsMerged = result.data.merged.split(',');
-    console.log("bbb", idsMerged);
-    
-    if(result.data.type == "ORIGEM" 
-      || result.data.type == "DESTINO") {
-      result.has_mission = false;    
-    }
-    else {
-      result.has_mission = (await TravelMissionDao.getAllByLocal(idsMerged))?.length > 0;
-    }
+    const idsMerged = result.data.merged.split(",");
 
+    if (result.data.type == "ORIGEM" || result.data.type == "DESTINO") {
+      result.has_mission = false;
+    } else {
+      result.has_mission =
+        (await TravelMissionDao.getAllByLocal(idsMerged))?.length > 0;
+    }
 
     return JSON.parse(JSON.stringify(result));
   }
@@ -178,10 +179,9 @@ export class TravelController {
 
     try {
       const local = await TravelLocalDao.findById(id);
-      if(local) {
+      if (local) {
         await this.getTravel(token, local.travel_id);
       }
-        
     } catch (error) {
       console.log(error);
       outError = error;
@@ -189,12 +189,13 @@ export class TravelController {
 
     result.local = await TravelLocalDao.findById(id);
     result.travel_id = result.local.travel_id;
-    const idsMerged = result.local.merged.split(',');
-    console.log("aaa",idsMerged);
+    const idsMerged = result.local.merged.split(",");
     const missions = await TravelMissionDao.getAllByLocal(idsMerged);
 
     for (const mission of missions) {
-      mission.contact = await TravelContactDao.findFirstByLocal(result.local.location_owner_id);
+      mission.contact = await TravelContactDao.findFirstByLocal(
+        result.local.location_owner_id
+      );
       mission.document = await TravelDocumentDao.getAllByMission(mission.id);
       result.missions.push(mission);
     }
@@ -235,14 +236,11 @@ export class TravelController {
     }
 
     let mission = await TravelMissionDao.findById(id);
-    console.log("mission", mission);
     const local = await TravelLocalDao.findById(mission.travel_local_id);
-    console.log("local", local);
     const documents = await TravelDocumentDao.getAllByMission(mission.id);
-    console.log("documents", documents);
-    mission.contact = await TravelContactDao.findFirstByLocal(local.location_owner_id);
-    console.log("mission.contact", mission.contact);
-    
+    mission.contact = await TravelContactDao.findFirstByLocal(
+      local.location_owner_id
+    );
 
     const result = {
       travel_id: local.travel_id,
@@ -282,5 +280,41 @@ export class TravelController {
     }
 
     return JSON.parse(JSON.stringify(result));
+  }
+
+  static async getLocalsNotConfirmed(travelId) {
+    let response = {
+      data: {data: []},
+      code: 200,
+      success: true,
+      errors: [],
+      message: "",
+      request_id: ""
+    }
+    let locals = await TravelLocalDao.getAllByTravel(travelId);
+    locals = JSON.parse(JSON.stringify(locals));
+
+    for(let local of locals) {
+      local.contact = [];
+      local.missions_not_confirmed_with_contacts = [];
+
+      let missionsNotConfirmed = await TravelMissionDao.getMissionsNotConfirmed(local.merged.split(','));
+      missionsNotConfirmed = JSON.parse(JSON.stringify(missionsNotConfirmed));
+      if(missionsNotConfirmed.length > 0) {
+        for(let mission of missionsNotConfirmed) {
+          mission.contact = [];
+          mission.document = [];
+
+          mission.contact.push(await TravelContactDao.findFirstByLocal(local.location_owner_id));
+          mission.document.push(await TravelDocumentDao.getAllByMission(mission.id));
+
+          local.missions_not_confirmed_with_contacts.push(mission);
+        }
+
+        response.data.data.push(local);
+      }
+    }
+
+    return response;
   }
 }

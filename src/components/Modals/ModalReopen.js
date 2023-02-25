@@ -26,6 +26,7 @@ export default function ModalReopen({
       }
       if (travelId) {
         const response = await TravelController.checkLocalsPendent(travelId);
+        console.log(response);
         if (!response) {
             setRegress(false);
 Í        }
