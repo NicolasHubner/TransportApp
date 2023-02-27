@@ -16,6 +16,7 @@ import Footer from "../../components/Footer";
 import { api } from "../../services/api";
 import styles from "./styles";
 import crashlytics from '@react-native-firebase/crashlytics';
+import { TravelLocalDao } from "../../daos/TravelLocalDao";
 
 export default function NewAddress({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(false);
@@ -105,7 +106,8 @@ export default function NewAddress({ navigation, route }) {
           coords,
           { headers: { Authorization: `bearer ${tokenKey}` } }
         );
-        
+        await TravelLocalDao.updateLocation(id, coords);
+
         if (response) {
           const coord = {
             latitude: latitude,
@@ -159,6 +161,9 @@ export default function NewAddress({ navigation, route }) {
           endereco,
           { headers: { Authorization: `bearer ${tokenKey}` } }
         );
+
+        await TravelLocalDao.updateLocation(id, coords);
+        
         if (response) {
           const coord = {
             latitude: latLon[0].latitude,

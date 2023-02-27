@@ -1,5 +1,7 @@
 import { TravelSchema } from "../schemas/TravelSchema";
 import { Dao } from "./Dao";
+import { TravelLocalDao } from "./TravelLocalDao";
+import { TravelMissionDao } from "./TravelMissionDao";
 
 export class TravelDao extends Dao {
     static tableName = TravelSchema.name;
@@ -86,5 +88,41 @@ export class TravelDao extends Dao {
                 realmContext.create(this.tableName, dataObj);
             }
         });
+    }
+
+    static async getAll() {
+        const realmContext = await this.getContext();
+        let result = realmContext.objects(this.tableName);
+        result = JSON.parse(JSON.stringify(result));
+
+        for(let travel of result) {
+            let locals = await TravelLocalDao.getAllByTravel(travel.id);
+            locals = JSON.parse(JSON.stringify(locals));
+            travel.not_confirmed = 0;
+
+            for(let local of locals) {
+                let missionsNotConfirmed = await TravelMissionDao.getMissionsNotConfirmed(local.merged.split(','));
+                travel.not_confirmed += missionsNotConfirmed.length;
+            }
+        }
+
+        return result;
+    }
+
+    static async findById(id) {
+        const realmContext = await this.getContext();
+        let travel = realmContext.objectForPrimaryKey(this.tableName, id);
+        travel = JSON.parse(JSON.stringify(travel));
+
+        let locals = await TravelLocalDao.getAllByTravel(travel.id);
+        locals = JSON.parse(JSON.stringify(locals));
+        travel.not_confirmed = 0;
+
+        for(let local of locals) {
+            let missionsNotConfirmed = await TravelMissionDao.getMissionsNotConfirmed(local.merged.split(','));
+            travel.not_confirmed += missionsNotConfirmed.length;
+        }
+
+        return travel;
     }
 }

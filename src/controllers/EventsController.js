@@ -227,14 +227,14 @@ export class EventsController {
         console.log(`event url - ${event.url}`);
         console.log(`event header - ${header}`);
         console.log(`event data - ${data}`);
-
-        if(event.url.contains('/confirmed')) {
-          const response = await api.put(event.url,
+        let response = {}
+        if(event.url.includes('/confirmed')) {
+          response = await api.put(event.url,
             data,
             {headers: header},
           );  
         }else {
-          const response = await api.post(event.url,
+          response = await api.post(event.url,
             data,
             {headers: header},
           );

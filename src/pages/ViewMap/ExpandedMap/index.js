@@ -280,7 +280,7 @@ export default function ExpandedMap({ navigation, route }) {
     // VERIFICA SE O USUÁRIO CHEGOU AO LOCAL A CADA 10 SEGUNDOS
     setTimeout(() => {
       interval();
-    }, 1000);
+    }, 10000);
   }, [refresh]);
 
   //roda o init sempre que navegar para esta tela

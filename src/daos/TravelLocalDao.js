@@ -145,4 +145,21 @@ export class TravelLocalDao extends Dao {
 
         return objects;
     }
+
+    static async updateLocation(localId, coords) {
+        const context = await this.getContext();
+        let myObject = context.objectForPrimaryKey(this.tableName, localId);
+        myObject = JSON.parse(JSON.stringify(myObject));
+        
+        if(myObject) {
+            console.log(`Atualizando location local -> old:  ${myObject.location_latitud},  ${myObject.location_longitud} - ${myObject.address}`);
+            myObject.location_latitud = `${coords.location_latitud}`;
+            myObject.location_longitud = `${coords.location_longitud}`;
+            myObject.address = `${coords.address}`;
+
+            console.log(`Atualizando location local -> new:  ${myObject.location_latitud},  ${myObject.location_longitud} - ${myObject.address}`)
+        }
+
+        await this.createOrUpdate(myObject);
+    }
 }
