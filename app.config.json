@@ -2,7 +2,7 @@
   "expo": {
     "name": "Trouw+Mobile",
     "slug": "Trouw_Mobile",
-    "version": "1.0.13",
+    "version": "1.0.14",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "icon": "./assets/icon.png",
@@ -54,7 +54,7 @@
     "ios": {
       "bundleIdentifier": "com.trouw.mobile",
       "supportsTablet": true,
-      "buildNumber": "1.4.30",
+      "buildNumber": "1.4.31",
       "infoPlist": {
         "NSCameraUsageDescription": "Este aplicativo usa a câmera para capturar imagens das notas fiscais de entrega e coleta.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Este aplicativo precisa de acesso para obter a localização atual e informar a api os pontos de coleta e entrega de mecadoria.",
@@ -73,7 +73,7 @@
     },
     "android": {
       "package": "com.trouw.mobile",
-      "versionCode": 15,
+      "versionCode": 16,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.CAMERA_ROLL",
