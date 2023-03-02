@@ -20,6 +20,7 @@ import ContactLocals from "../pages/ContactLocals";
 // import Signature from "../pages/Signature";
 // import ControlledTrips from "../pages/ControlledTrips";
 // import ControlledRoute from "../pages/ControlledRoute";
+import Pendency from "../pages/Pendency";
 
 const AppStack = createStackNavigator();
 
@@ -46,6 +47,7 @@ const AppRoutes = () => (
       {/* <AppStack.Screen name="ControlledRoute" component={ControlledRoute} /> */}
       {/* <AppStack.Screen name="Ocr" component={Ocr} /> */}
       {/* <AppStack.Screen name="Signature" component={Signature} /> */}
+      <AppStack.Screen name="Pendency" component={Pendency} />
   </AppStack.Navigator>
 )
 
