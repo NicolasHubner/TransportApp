@@ -45,6 +45,7 @@ import styles from "../Login/styles";
 import { api } from "../../services/api";
 import * as Yup from "yup";
 import crashlytics from '@react-native-firebase/crashlytics';
+import { AuthController } from "../../controllers/AuthController";
 
 Yup.setLocale(yupLocale);
 const INITIAL_VALUES = { email: [], password: [], api_error: [] };
@@ -163,17 +164,7 @@ export default function Login({ navigation }) {
       setLoading(true);
       setSubmit(true);
       checkInput();
-      if (!isConnected) {
-        Alert.alert(
-          "AVISO",
-          "Para efetuar o login é necessário conexão com internet",
-          [{ text: "OK" }],
-          {
-            cancelable: false,
-          }
-        );
-        return;
-      }
+      
       let ignore_expiration = "false";
       if (checked) {
         ignore_expiration = "true";
@@ -181,9 +172,10 @@ export default function Login({ navigation }) {
       const dadosAcesso = { email, password, ignore_expiration };
       await schema.validate(dadosAcesso, { abortEarly: false });
 
-      const res = await api.post("/login", dadosAcesso);
+      //const res = await api.post("/login", dadosAcesso);
+      const res = await AuthController.doLogin(email, password, ignore_expiration);
       if (res.data.success) {
-        console.log(res.data.data.access_token);
+        console.log("TOKEN_VALIDO", res.data.data.access_token);
         const token = res.data.data.access_token;
         const user = res.data.data.user;
         await signIn(token, user, checked);

@@ -40,6 +40,7 @@ import styles from "./styles";
 import crashlytics from "@react-native-firebase/crashlytics";
 import { TravelController } from "../../../controllers/TravelController";
 import { EventsController } from "../../../controllers/EventsController";
+import { AuthController } from "../../../controllers/AuthController";
 
 // COMPONENTE DO MAPA DO LOCAL DE ORIGEM
 export default function ExpandedMap({ navigation, route }) {
@@ -111,7 +112,7 @@ export default function ExpandedMap({ navigation, route }) {
       // let map = await StorageController.buscarPorChave(APP_NAVIGATION);
 
       // PEGA E GUARDA O TOKEN DE AUTENTICAÇÃO PARA FAZER AS REQUISIÇÕES
-      const tokenKey = await StorageController.buscarPorChave(TOKEN_KEY);
+      const tokenKey = await AuthController.getToken();
       setToken(tokenKey);
 
       // PEGA E GUARDA OS PAREMETROS DA ROTA COMO 'TRAVEL', 'PLATFORM' E 'LOCAL'

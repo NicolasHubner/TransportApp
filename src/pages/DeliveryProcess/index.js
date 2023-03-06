@@ -57,6 +57,7 @@ import crashlytics from "@react-native-firebase/crashlytics";
 import { TravelController } from "../../controllers/TravelController";
 import { EventsController } from "../../controllers/EventsController";
 import reactotron from "reactotron-react-native";
+import { AuthController } from "../../controllers/AuthController";
 
 export default function DeliveryProcess({ navigation, route }) {
   const [address, setAddress] = useState("");
@@ -165,7 +166,7 @@ export default function DeliveryProcess({ navigation, route }) {
   async function init() {
     try {
       // await StorageController.removePorChave(IMAGE_RECEIPT);
-      const token = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token = await AuthController.getToken();
       setTokenKey(token);
       let params = await route.params;
       let missionId = null;
@@ -445,7 +446,7 @@ export default function DeliveryProcess({ navigation, route }) {
   async function finishDelivery() {
     try {
       setButtonLoading(true);
-      const token = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token = await AuthController.getToken();
       let data = { data: [] };
 
       let lastLocation = await StorageController.buscarPorChave(LAST_LOCATION);

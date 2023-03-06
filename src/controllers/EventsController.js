@@ -9,40 +9,24 @@ import { TravelDao } from "../daos/TravelDao";
 import StorageController from "./StorageController";
 import { TravelDocumentDao } from "../daos/TravelDocumentDao";
 import { TravelContactDao } from "../daos/TravelContactDao";
+import { AuthController } from "./AuthController";
 
 export class EventsController {
   static async postEvent(eventType, token, url, request, id) {
-    reactotron.log('postEvent',eventType, token, url, request, id);
+    reactotron.log("postEvent", eventType, token, url, request, id);
     let response = null;
-    // try {
-    //   if(eventType == EVENT_TYPE.MISSION_CONFIRMED) {
-    //     response = await api.put(url,
-    //       request,
-    //       {headers: { Authorization: `bearer ${token}`}},
-    //     );
-    //   }
-    //   else {
-    //     response = await api.post(url,
-    //       request,
-    //       {headers: { Authorization: `bearer ${token}`}},
-    //     );
-    //   }
-    // } catch (error) {
-      // console.log(`postEvent error: ${error}`);
-      // crashlytics().recordError(error, "EventsController.postEvent error");
 
-      if(eventType != EVENT_TYPE.NEXT_STEP) {
-        await EventDao.save(url, JSON.stringify(request));
-      }
+    if (eventType != EVENT_TYPE.NEXT_STEP) {
+      await EventDao.save(url, JSON.stringify(request));
+    }
 
-      response = await this.handleAction(eventType, request, id, url);
-    // }
-    
-    if(response) {
+    response = await this.handleAction(eventType, request, id, url);
+
+    if (response) {
       return response;
     }
-    
-    return {data: {success: true}};
+
+    return { data: { success: true } };
   }
 
   static async handleAction(eventType, request, id) {
@@ -92,9 +76,9 @@ export class EventsController {
   static async missionChangeStatus(id, request) {
     let mission = await TravelMissionDao.findById(id);
     mission = JSON.parse(JSON.stringify(mission));
-    
+
     if (mission && request.data.length > 0) {
-      reactotron.log('missionChangeStatus Into', request.data[0]);
+      reactotron.log("missionChangeStatus Into", request.data[0]);
       mission.status = request.data[0].status ?? mission.status;
       mission.failure_reasons_id =
         request.data[0].failure_reasons_id ?? mission.failure_reasons_id;
@@ -122,9 +106,9 @@ export class EventsController {
 
   static async nextStep(missionId) {
     let output = {
-      data: {data: {}},
-      success: true
-    }
+      data: { data: {} },
+      success: true,
+    };
 
     //Procura Missões pendentes no mesmo local da missão atual
     let mission = await TravelMissionDao.findById(missionId);
@@ -133,31 +117,36 @@ export class EventsController {
     let local = await TravelLocalDao.findById(mission.travel_local_id);
     local = JSON.parse(JSON.stringify(local));
 
-    const missionPending = await TravelMissionDao.getNextMissionPending(mission.id, local.merged.split(','))
-    
-    if(missionPending.length > 0) {
+    const missionPending = await TravelMissionDao.getNextMissionPending(
+      mission.id,
+      local.merged.split(",")
+    );
+
+    if (missionPending.length > 0) {
       output.data.data = {
-        nextAction: 'mission',
-        mission: missionPending[0]
+        nextAction: "mission",
+        mission: missionPending[0],
       };
 
-      console.log('saindo em missoes pendentes');
+      console.log("saindo em missoes pendentes");
       return JSON.parse(JSON.stringify(output));
     }
-    
+
     //se nao tiver, atualiza local para concluido
     await this.updateLocalToDone(local.id);
-    
-    //Pega locais pendentes
-    const localsPending = await TravelLocalDao.getPendentsByTravel(local.travel_id);
 
-    if(localsPending.length > 0) {
+    //Pega locais pendentes
+    const localsPending = await TravelLocalDao.getPendentsByTravel(
+      local.travel_id
+    );
+
+    if (localsPending.length > 0) {
       output.data.data = {
-        nextAction: 'local',
-        local: localsPending[0]
+        nextAction: "local",
+        local: localsPending[0],
       };
 
-      console.log('saindo em locais pendentes');
+      console.log("saindo em locais pendentes");
       return JSON.parse(JSON.stringify(output));
     }
 
@@ -166,51 +155,56 @@ export class EventsController {
     locals = JSON.parse(JSON.stringify(locals));
     let failedMissions = [];
     for (let localInto of locals) {
-
-      let failedMission = await TravelMissionDao.getMissionFailed(local.merged.split(','));
+      let failedMission = await TravelMissionDao.getMissionFailed(
+        local.merged.split(",")
+      );
       failedMission = JSON.parse(JSON.stringify(failedMission));
-      if(failedMission.length > 0) {
+      if (failedMission.length > 0) {
         localInto.missions_failed_with_contacts = [];
-        for(let missionFailed of failedMission) {
-          missionFailed.document = await TravelDocumentDao.getAllByMission(missionFailed.id);
-          missionFailed.contact = await TravelContactDao.findFirstByLocal(localInto.location_owner_id);
+        for (let missionFailed of failedMission) {
+          missionFailed.document = await TravelDocumentDao.getAllByMission(
+            missionFailed.id
+          );
+          missionFailed.contact = await TravelContactDao.findFirstByLocal(
+            localInto.location_owner_id
+          );
 
           localInto.missions_failed_with_contacts.push(missionFailed);
         }
       }
       failedMissions.push(localInto);
     }
-    
-    if(failedMissions.length > 0) {
+
+    if (failedMissions.length > 0) {
       output.data.data = {
-        nextAction: 'missionFailed',
+        nextAction: "missionFailed",
         travel: {
           id: local.travel_id,
-          locals: failedMissions
-        }
+          locals: failedMissions,
+        },
       };
 
-      console.log('saindo em missionFailed');
+      console.log("saindo em missionFailed");
       return JSON.parse(JSON.stringify(output));
     }
 
     //Destino
     const destiny = await TravelLocalDao.getPendingDestiny(local.travel_id);
-    if(destiny && destiny.length > 0) {
+    if (destiny && destiny.length > 0) {
       output.data.data = {
-        nextAction: 'destiny',
-        local: destiny[0]
+        nextAction: "destiny",
+        local: destiny[0],
       };
 
-      console.log('saindo em destiny');
+      console.log("saindo em destiny");
       return JSON.parse(JSON.stringify(output));
     }
 
     output.data.data = {
-      nextAction: 'travel'
+      nextAction: "travel",
     };
 
-    console.log('saindo em travel');
+    console.log("saindo em travel");
     return JSON.parse(JSON.stringify(output));
   }
 
@@ -218,7 +212,7 @@ export class EventsController {
     let eventList = await EventDao.getTop(50);
     eventList = JSON.parse(JSON.stringify(eventList));
     console.log(`EventsController.syncEvents: ${eventList.length}`);
-    const token = await StorageController.buscarPorChave(TOKEN_KEY);
+    const token = await AuthController.getToken();
 
     for (const event of eventList) {
       try {
@@ -226,31 +220,30 @@ export class EventsController {
         const data = JSON.parse(event.request);
         console.log(`event url - ${event.url}`);
         console.log(`event header - ${header}`);
-        console.log(`event data - ${data}`);
-        let response = {}
-        if(event.url.includes('/confirmed')) {
-          response = await api.put(event.url,
-            data,
-            {headers: header},
-          );  
-        }else {
-          response = await api.post(event.url,
-            data,
-            {headers: header},
-          );
+        console.log(`event data - ${JSON.stringify(data)}`);
+        let response = {};
+        if (event.url.includes("/confirmed")) {
+          response = await api.put(event.url, data, { headers: header });
+        } else {
+          response = await api.post(event.url, data, { headers: header });
         }
 
-        console.log(`EventsController.syncEvents: idEvent ${event.id}`)
+        console.log(`EventsController.syncEvents: idEvent ${event.id}`);
         if (response.data.success) await EventDao.deleteList([event]);
       } catch (error) {
-        console.log(`syncEvents error: ${error}`);
+        //apaga eventos com retorno hhtp status da familia 400 (erros de validação)
+        if(error.toJSON().status >= 400 && error.toJSON().status < 500) {
+          await EventDao.deleteList([event]);
+          console.log(`apagando evento: ${JSON.stringify(event)}`)
+        }
+
         crashlytics().recordError(error, "EventsController.syncEvents error");
       }
     }
   }
 
   static async updateLocalToDone(id) {
-    const token = await StorageController.buscarPorChave(TOKEN_KEY);
+    const token = await AuthController.getToken();
     const response = await this.postEvent(
       EVENT_TYPE.LOCAL_CHANGE_STATUS,
       token,
@@ -265,7 +258,7 @@ export class EventsController {
   static async confirmedMission(id) {
     let mission = await TravelMissionDao.findById(id);
     mission = JSON.parse(JSON.stringify(mission));
-    
+
     if (mission) {
       mission.confirmed = 1;
       await TravelMissionDao.createOrUpdate(mission);

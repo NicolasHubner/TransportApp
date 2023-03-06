@@ -24,6 +24,7 @@ import { format } from "date-fns";
 import styles from "./styles";
 import crashlytics from "@react-native-firebase/crashlytics";
 import { EventsController } from "../../controllers/EventsController";
+import { AuthController } from "../../controllers/AuthController";
 
 export default function Insuccess({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -79,7 +80,7 @@ export default function Insuccess({ navigation, route }) {
   // PEGA OS DADOS PASSADOS POR PARAMETROS, COMO O ID DA VIAGEM E O TOKEN
   async function init() {
     try {
-      const token_key = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token_key = await AuthController.getToken();
       setToken(token_key);
       let insuccess = await route.params;
       setData(insuccess);

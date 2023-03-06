@@ -29,6 +29,7 @@ import styles from "./styles";
 import crashlytics from "@react-native-firebase/crashlytics";
 import { TravelController } from "../../controllers/TravelController";
 import { EventsController } from "../../controllers/EventsController";
+import { AuthController } from "../../controllers/AuthController";
 
 export default function Missions({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -68,7 +69,7 @@ export default function Missions({ navigation, route }) {
     try {
       await StorageController.removePorChave(IMAGE_RECEIPT);
       await StorageController.removePorChave(IMAGE_PHOTO);
-      const token = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token = await AuthController.getToken();
 
       const id = await route.params;
       setLocalId(id);
@@ -123,7 +124,7 @@ export default function Missions({ navigation, route }) {
   async function cancelLocalProcess() {
     try {
       setLoading(true);
-      const token = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token = await AuthController.getToken();
       const response = await EventsController.postEvent(
         EVENT_TYPE.LOCAL_CHANGE_STATUS,
         token,

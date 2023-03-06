@@ -15,6 +15,7 @@ import { api } from "../../services/api";
 import styles from "./styles";
 import crashlytics from '@react-native-firebase/crashlytics';
 import { TravelController } from "../../controllers/TravelController";
+import { AuthController } from "../../controllers/AuthController";
 
 export default function ContactLocals({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -34,7 +35,7 @@ export default function ContactLocals({ navigation, route }) {
   // PEGA OS LOCAIS NÃO CONFIRMADOS
   async function init() {
     try {
-      const token = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token = await AuthController.getToken();
       let params = await route.params;
       setLocalId(params.travel_id);
       setToken(token);

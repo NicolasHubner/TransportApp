@@ -14,6 +14,7 @@ import styles from "./styles";
 import crashlytics from "@react-native-firebase/crashlytics";
 import { TravelController } from "../../controllers/TravelController";
 import { EventsController } from "../../controllers/EventsController";
+import { AuthController } from "../../controllers/AuthController";
 
 export default function LocalDetails({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -28,7 +29,7 @@ export default function LocalDetails({ navigation, route }) {
   // FAZ AS REQUISIÇÕES DE PEGAR OS DETALHES DO LOCAL POR ID
   async function init() {
     try {
-      const token = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token = await AuthController.getToken();
       const nav = await StorageController.buscarPorChave(APP_NAVIGATION);
       let routeParams = await navigation.getState();
 

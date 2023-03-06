@@ -31,6 +31,7 @@ import { format } from "date-fns";
 import NetInfo from "@react-native-community/netinfo";
 import crashlytics from "@react-native-firebase/crashlytics";
 import { EventsController } from "../controllers/EventsController";
+import { AuthController } from "../controllers/AuthController";
 
 export default function Header({
   navigation,
@@ -65,7 +66,7 @@ export default function Header({
   async function init() {
     crashlytics().log("Updating user count.");
     try {
-      const token = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token = await AuthController.getToken();
       setTokenKey(token);
     } catch (error) {
       crashlytics().recordError(error);
@@ -92,7 +93,6 @@ export default function Header({
   async function cancelLocalProcess() {
     try {
       setLoading(true);
-      // const token = await StorageController.buscarPorChave(TOKEN_KEY);
       await StorageController.removePorChave(LOCAL_COORD);
       await StorageController.removePorChave(ARRIVAL_NOTIFICATION);
 
@@ -132,7 +132,7 @@ export default function Header({
   async function cancelTravelProcess() {
     try {
       setLoading(true);
-      const token = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token = await AuthController.getToken();
       let lastLocation = await StorageController.buscarPorChave(LAST_LOCATION);
       if (lastLocation) {
         lastLocation = JSON.parse(JSON.parse(lastLocation));

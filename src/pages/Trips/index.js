@@ -25,6 +25,7 @@ import { api } from "../../services/api";
 import styles from "./styles";
 import crashlytics from "@react-native-firebase/crashlytics";
 import { TravelController } from "../../controllers/TravelController";
+import { AuthController } from "../../controllers/AuthController";
 
 export default function Trips({ navigation }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -51,7 +52,7 @@ export default function Trips({ navigation }) {
       setIsBusy(true);
       await LocationController.verificaAutorizacaoBackgroundLocalizacao();
       await LocationController.verificaAtivacaoLocalizacao();
-      const token = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token = await AuthController.getToken();
       const userId = await StorageController.buscarPorChave(USER_ID);
 
       if (userId) {
@@ -139,7 +140,7 @@ export default function Trips({ navigation }) {
     try {
       
       setRefreshLoading(true);
-      const token = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token = await AuthController.getToken();
       if (token) {
         const response = await TravelController.getTravels(token);
 

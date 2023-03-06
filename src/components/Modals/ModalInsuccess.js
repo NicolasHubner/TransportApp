@@ -22,6 +22,7 @@ import CameraController from "../../controllers/CameraController";
 import { TravelController } from "../../controllers/TravelController";
 import reactotron from "reactotron-react-native";
 import { EventsController } from "../../controllers/EventsController";
+import { AuthController } from "../../controllers/AuthController";
 
 export default function ModalInsuccess({ func, func2, missionId }) {
   const [motivo, setMotivo] = useState("0");
@@ -41,7 +42,7 @@ export default function ModalInsuccess({ func, func2, missionId }) {
   // FAZ A REQUISIÇÃO DE FAILURE NA API
   const init = async () => {
     try {
-      const tokenKey = await StorageController.buscarPorChave(TOKEN_KEY);
+      const tokenKey = await AuthController.getToken();
       setToken(tokenKey);
       const response = await TravelController.getInsuccessType(tokenKey, 1);
       

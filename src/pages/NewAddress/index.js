@@ -17,6 +17,7 @@ import { api } from "../../services/api";
 import styles from "./styles";
 import crashlytics from '@react-native-firebase/crashlytics';
 import { TravelLocalDao } from "../../daos/TravelLocalDao";
+import { AuthController } from "../../controllers/AuthController";
 
 export default function NewAddress({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(false);
@@ -40,7 +41,7 @@ export default function NewAddress({ navigation, route }) {
     try {
       await LocationController.verificaAtivacaoLocalizacao();
       await LocationController.verificaAutorizacaoLocalizacao();
-      const tokenKey = await StorageController.buscarPorChave(TOKEN_KEY);
+      const tokenKey = await AuthController.getToken();
       setToken(tokenKey);
       const id = await route.params;
       setLocal(id);
@@ -65,7 +66,7 @@ export default function NewAddress({ navigation, route }) {
     setButtonLoading(true);
     try {
       await LocationController.verificaAtivacaoLocalizacao();
-      const tokenKey = await StorageController.buscarPorChave(TOKEN_KEY);
+      const tokenKey = await AuthController.getToken();
       const id = await route.params;
 
       let e;
@@ -144,7 +145,7 @@ export default function NewAddress({ navigation, route }) {
   async function changeAddressLocation() {
     setButtonLoading(true);
     try {
-      const tokenKey = await StorageController.buscarPorChave(TOKEN_KEY);
+      const tokenKey = await AuthController.getToken();
       
       const id = await route.params;
       const latLon = await LocationController.buscaLatLonPorEndereco(address);

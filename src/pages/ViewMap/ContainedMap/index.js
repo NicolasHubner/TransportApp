@@ -17,6 +17,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import crashlytics from '@react-native-firebase/crashlytics';
 import { TravelController } from "../../../controllers/TravelController";
 import reactotron from "reactotron-react-native";
+import { AuthController } from "../../../controllers/AuthController";
 
 export default function ContainedMap({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -46,7 +47,7 @@ export default function ContainedMap({ navigation, route }) {
     try {
 
       // BUSCA O TOKEN PARA AS REQUISIÇÕES
-      const tokenKey = await StorageController.buscarPorChave(TOKEN_KEY);
+      const tokenKey = await AuthController.getToken();
 
       // BUSCA A ULTIMA LOCALIZAÇÃO DO USER
       let lastLocation = await StorageController.buscarPorChave(LAST_LOCATION);

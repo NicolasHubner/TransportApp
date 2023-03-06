@@ -21,6 +21,7 @@ import { LocationDao } from "../daos/LocationDao";
 import crashlytics from "@react-native-firebase/crashlytics";
 
 import axios from "axios";
+import { AuthController } from "./AuthController";
 
 function LocationController() {
   const saveLocationsTask = async (
@@ -123,7 +124,7 @@ function LocationController() {
     try {
       let arrayLocations = await LocationDao.getTop(5);
       arrayLocations = JSON.parse(JSON.stringify(arrayLocations));
-      const token = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token = await AuthController.getToken();
 
       let dataEnv = false;
 

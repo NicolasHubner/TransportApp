@@ -33,6 +33,7 @@ import styles from "./styles";
 import crashlytics from '@react-native-firebase/crashlytics';
 import { TravelController } from "../../controllers/TravelController";
 import { EventsController } from "../../controllers/EventsController";
+import { AuthController } from "../../controllers/AuthController";
 
 export default function Locals({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -66,7 +67,7 @@ export default function Locals({ navigation, route }) {
   // FAZ A REQUISIÇÃO PARA PEGAR TODOS OS LOCAIS POR ID
   async function init() {
     try {
-      const token = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token = await AuthController.getToken();
       setTokenKey(token);
       // const nav = await StorageController.buscarPorChave(APP_NAVIGATION);
       const id = await route.params;
@@ -139,7 +140,7 @@ export default function Locals({ navigation, route }) {
   async function cancelTravelProcess() {
     try {
       setLoading(true);
-      const token = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token = await AuthController.getToken();
       let lastLocation = await StorageController.buscarPorChave(LAST_LOCATION);
       if (lastLocation) {
         lastLocation = JSON.parse(JSON.parse(lastLocation));

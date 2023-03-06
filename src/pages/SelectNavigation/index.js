@@ -33,6 +33,7 @@ import styles from "./styles";
 import crashlytics from "@react-native-firebase/crashlytics";
 import { TravelController } from "../../controllers/TravelController";
 import { EventsController } from "../../controllers/EventsController";
+import { AuthController } from "../../controllers/AuthController";
 
 export default function SelectNavigation({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -75,7 +76,7 @@ export default function SelectNavigation({ navigation, route }) {
   // VERIFICANDO E TRATANDO AS INFORMAÇÕES PASSADAS ATRAVES DO ROUTE.PARAMS
   async function init() {
     try {
-      const token = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token = await AuthController.getToken();
       setTokenKey(token);
       const nav = await StorageController.buscarPorChave(APP_NAVIGATION);
       let routeParams = await navigation.getState();
@@ -161,7 +162,7 @@ export default function SelectNavigation({ navigation, route }) {
   async function cancelLocalProcess() {
     try {
       setLoading(true);
-      const token = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token = await AuthController.getToken();
 
       const response = await EventsController.postEvent(
         EVENT_TYPE.LOCAL_CHANGE_STATUS,
@@ -195,7 +196,7 @@ export default function SelectNavigation({ navigation, route }) {
   async function cancelTravelProcess() {
     try {
       setLoading(true);
-      const token = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token = await AuthController.getToken();
       let lastLocation = await StorageController.buscarPorChave(LAST_LOCATION);
       if (lastLocation) {
         lastLocation = JSON.parse(JSON.parse(lastLocation));

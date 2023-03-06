@@ -57,11 +57,8 @@ export default function Splash({ setIsLoading = () => {}, opening }) {
         const background = await Location.requestBackgroundPermissionsAsync();
         if (background.granted) {
           const camera = await ImagePicker.requestCameraPermissionsAsync(); //verifica PERMISSAO
-          console.log(camera);
           if (camera.granted) {
             const media = await ImagePicker.requestMediaLibraryPermissionsAsync(); //verifica permissao
-            console.log("a", media);
-
             if (media.granted) goLogin();
           }
         }

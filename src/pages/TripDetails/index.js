@@ -18,6 +18,7 @@ import styles from "./styles";
 import crashlytics from "@react-native-firebase/crashlytics";
 import { TravelController } from "../../controllers/TravelController";
 import { EventsController } from "../../controllers/EventsController";
+import { AuthController } from "../../controllers/AuthController";
 
 export default function TripDetails({ navigation, route }) {
   const [isBusy, setIsBusy] = useState(true);
@@ -43,7 +44,7 @@ export default function TripDetails({ navigation, route }) {
   // PEGA AS LOCALIZAÇÕES E TODAS AS INFORMAÇÕES DA VIAGEM
   async function init() {
     try {
-      const token = await StorageController.buscarPorChave(TOKEN_KEY);
+      const token = await AuthController.getToken();
       const id = await route.params;
 
       setTravelId(id);
