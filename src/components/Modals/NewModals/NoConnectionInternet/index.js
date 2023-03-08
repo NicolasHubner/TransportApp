@@ -3,6 +3,8 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { styles } from "./style";
 import AuthContext from "../../../../contexts/auth";
 import { useContext } from "react";
+import crashlytics from "@react-native-firebase/crashlytics";
+import { Alert } from "react-native";
 
 export default function ModalNoConnectionInternet({setModalNoConnection}) {
 
