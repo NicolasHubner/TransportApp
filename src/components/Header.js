@@ -8,7 +8,8 @@ import {
   Modal,
   Alert,
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
+
 import {
   ARRIVAL_NOTIFICATION,
   LOCAL_COORD,
@@ -32,6 +33,7 @@ import NetInfo from "@react-native-community/netinfo";
 import crashlytics from "@react-native-firebase/crashlytics";
 import { EventsController } from "../controllers/EventsController";
 import { AuthController } from "../controllers/AuthController";
+import ModalNoConnectionInternet from "./Modals/NewModals/NoConnectionInternet";
 
 export default function Header({
   navigation,
@@ -50,6 +52,10 @@ export default function Header({
   const [tokenKey, setTokenKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [noNetwork, setNoNetwork] = useState(false);
+
+  //Modal de conexão de internet
+  const [modalNoConnection, setModalNoConnection] = useState(false);
+
 
   const { signOut } = useContext(AuthContext);
 
@@ -78,6 +84,14 @@ export default function Header({
     getInternetStatus();
     init();
   }, []);
+
+  useEffect(() => {
+    if (noNetwork) {
+      setModalNoConnection(true);
+    } else {
+      setModalNoConnection(false);
+    }
+  }, [noNetwork]);
 
   async function logoutProcess() {
     try {
@@ -258,6 +272,11 @@ export default function Header({
       </View>
       {noNetwork && (
         <View style={styles.internetStatusNotification}>
+          <Feather
+            name="wifi-off"
+            size={15}
+            color='white'
+          />
           <Text style={styles.internetStatusNotificationText}>Sem conexão</Text>
         </View>
       )}
@@ -286,6 +305,11 @@ export default function Header({
           travelId={travelId}
           token={tokenKey}
         ></ModalReopen>
+      </Modal>
+      <Modal transparent={true} visible={modalNoConnection} dismissable={false}>
+        <ModalNoConnectionInternet
+        setModalNoConnection={setModalNoConnection}
+        />
       </Modal>
     </>
   );
@@ -332,12 +356,15 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: "red",
     justifyContent: "center",
+    alignItems: "center",
     textAlign: "center",
     zIndex: 1000,
+    flexDirection: "row",
   },
   internetStatusNotificationText: {
     textAlign: "center",
     color: "#fff",
     fontWeight: "bold",
+    marginLeft: 8,
   },
 });

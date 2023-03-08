@@ -1,8 +1,23 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { styles } from "./style";
+import AuthContext from "../../../../contexts/auth";
+import { useContext } from "react";
 
-export default function ModalNoConnectionInternet() {
+export default function ModalNoConnectionInternet({setModalNoConnection}) {
+
+    const { signOut } = useContext(AuthContext);
+
+    async function logoutProcess() {
+        try {
+          signOut();
+        } catch (error) {
+          crashlytics().recordError(error);
+          Alert.alert("AVISO", error.message, [{ text: "OK" }], {
+            cancelable: false,
+          });
+        }
+      }
     return (
         <View style={styles.modal}>
             <View style={styles.modalContainer}>
@@ -29,14 +44,14 @@ export default function ModalNoConnectionInternet() {
                 <View style={{width: "100%"}}>
                     <View style={styles.ViewButtons}>
                         <TouchableOpacity
-                        onPress={() => console.log("Ronaldo Fenomeno")}
+                        onPress={() => setModalNoConnection(false)}
                         style={styles.buttonBlue}>
                             <Text style={[styles.textButton, { color: "white" }]}>
                                 Continuar sem rede
                             </Text>
                         </TouchableOpacity>
-                        <TouchableOpacity 
-                        onPress={() => console.log("Roberto Carlos")}
+                        <TouchableOpacity
+                        onPress={() => logoutProcess()}
                         style={{ marginTop: "5%"}}>
                             <Text style={[styles.textButton, { color: "#00557C" }]}>
                                 Sair do App
