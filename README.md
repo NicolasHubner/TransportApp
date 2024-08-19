@@ -1,6 +1,6 @@
 # TransportApp
 
-This project consists of transportation app
+This project consists of delivery app of diferent types of products
 
 
 ## Before running the project
